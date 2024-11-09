@@ -1,4 +1,4 @@
-import { Task, TaskResult } from '../lib/interface';
+import { Task, TaskStatus } from '../lib/interface';
 
 export async function createTask(prompt: string): Promise<Task> {
     // TODO: implement
@@ -8,11 +8,11 @@ export async function createTask(prompt: string): Promise<Task> {
     };
 }
 
-export async function getTaskStatus(id: string): Promise<TaskResult> {
+export async function getTaskStatus(id: string): Promise<TaskStatus> {
     // TODO: implement
     return {
         id,
-        prompt: 'placeholder',
-        result: Buffer.from('placeholder'),
+        status: 'pending',
+        progress: 0.5,
     };
 }

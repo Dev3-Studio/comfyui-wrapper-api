@@ -17,6 +17,7 @@ export async function postTask(req: Request, res: Response) {
 
     try {
         const result = await services.createTask(task.prompt);
+        return res.status(201).json(result);
     } catch (err) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -35,6 +36,7 @@ export async function getTaskStatus(req: Request, res: Response) {
 
     try {
         const result = await services.getTaskStatus(taskId);
+        return res.status(200).json(result);
     } catch (err) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
