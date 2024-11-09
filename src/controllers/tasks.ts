@@ -37,7 +37,9 @@ export async function getTaskStatus(req: Request, res: Response) {
     try {
         const result = await services.getTaskStatus(taskId);
         return res.status(200).json(result);
-    } catch (err) {
-        return res.status(500).json({ error: 'Internal Server Error' });
+    } catch (err: unknown) {
+        if (err instanceof Error && err.message === 'NOT_FOUND') {
+            return res.status(404).json({ error: 'Not Found' });
+        }
     }
 }
