@@ -10,6 +10,7 @@ export const zTaskCreate = zTask.pick({ prompt: true });
 export const zTaskStatus = z.object({
     id: z.string().uuid(),
     status: z.enum(['pending', 'completed']),
+    statusMessage: z.string(),
     progress: z.number().int().min(0).max(1),
 });
 
