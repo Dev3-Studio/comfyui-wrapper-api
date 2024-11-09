@@ -111,7 +111,7 @@ ws.on('message', async (data: unknown) => {
             job.status = 'pending';
             job.lastUpdated = new Date();
             let progress = 0;
-            let statusMessage = 'Executing node';
+            let statusMessage;
             switch (message.data.node) {
                 case '5':
                     progress = 1 / BASIC_JOB_MAX_PROGRESS; // Step 1 of 14
