@@ -11,6 +11,12 @@
 		"strict": true,
 		"noImplicitAny": true,
 		"esModuleInterop": true,
-		"resolveJsonModule": true,
-	}
+		"resolveJsonModule": true
+	},
+	"exclude": [
+		"eslint.config.mjs",
+		"node_modules",
+		"build",
+		"dist"
+	]
 }
