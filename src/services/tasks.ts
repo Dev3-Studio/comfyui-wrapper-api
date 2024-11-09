@@ -21,3 +21,15 @@ export async function getTaskStatus(id: string): Promise<TaskStatus> {
         statusMessage: task.statusMessage,
     };
 }
+
+export async function getTaskResult(id: string): Promise<Buffer> {
+    const task = getJob(id);
+    if (!task) {
+        throw new Error('NOT_FOUND');
+    }
+    if (task.status !== 'completed') {
+        throw new Error('NOT_COMPLETED');
+    }
+
+    return task.output!;
+}

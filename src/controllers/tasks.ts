@@ -43,3 +43,27 @@ export async function getTaskStatus(req: Request, res: Response) {
         }
     }
 }
+
+export async function getTaskResult(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const parse = z.string().uuid().safeParse(id);
+    if (!parse.success) {
+        const error = fromError(parse.error);
+        return res.status(400).json(error);
+    }
+
+    const taskId = parse.data;
+
+    try {
+        const result = await services.getTaskResult(taskId);
+        return res.type('png').status(200).send(result);
+    } catch (err: unknown) {
+        if (err instanceof Error && err.message === 'NOT_FOUND') {
+            return res.status(404).json({ error: 'Not Found' });
+        }
+        if (err instanceof Error && err.message === 'NOT_COMPLETED') {
+            return res.status(404).json({ error: 'Image Not Found' });
+        }
+    }
+}
