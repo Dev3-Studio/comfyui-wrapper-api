@@ -1,18 +1,23 @@
 import { Task, TaskStatus } from '../lib/interface';
+import { getJob, queuePrompt } from '../jobs';
 
 export async function createTask(prompt: string): Promise<Task> {
-    // TODO: implement
+    const taskId = await queuePrompt(prompt);
     return {
-        id: '123',
+        id: taskId,
         prompt,
     };
 }
 
 export async function getTaskStatus(id: string): Promise<TaskStatus> {
-    // TODO: implement
+    const task = getJob(id);
+    if (!task) {
+        throw new Error('NOT_FOUND');
+    }
     return {
-        id,
-        status: 'pending',
-        progress: 0.5,
+        id: task.promptId,
+        status: task.status,
+        progress: task.progress,
+        statusMessage: task.statusMessage,
     };
 }
