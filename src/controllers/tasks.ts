@@ -10,7 +10,7 @@ export async function postTask(req: Request, res: Response) {
     const parse = zTaskCreate.safeParse(body);
     if (!parse.success) {
         const error = fromError(parse.error);
-        return res.status(400).json(error);
+        return res.status(400).json(error.toString());
     }
 
     const task = parse.data;
@@ -29,7 +29,7 @@ export async function getTaskStatus(req: Request, res: Response) {
     const parse = z.string().uuid().safeParse(id);
     if (!parse.success) {
         const error = fromError(parse.error);
-        return res.status(400).json(error);
+        return res.status(400).json(error.toString());
     }
 
     const taskId = parse.data;
@@ -50,7 +50,7 @@ export async function getTaskResult(req: Request, res: Response) {
     const parse = z.string().uuid().safeParse(id);
     if (!parse.success) {
         const error = fromError(parse.error);
-        return res.status(400).json(error);
+        return res.status(400).json(error.toString());
     }
 
     const taskId = parse.data;
