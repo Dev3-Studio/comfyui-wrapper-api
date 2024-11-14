@@ -1,0 +1,3 @@
+[submodule "comfyui-fork"]
+	path = comfyui-fork
+	url = git@github.com:Dev3-Studio/ComfyUI.git
