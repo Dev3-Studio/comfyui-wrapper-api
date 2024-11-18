@@ -75,7 +75,7 @@ export default tseslint.config(
 			'no-empty-function': 'off',
 			'no-empty-pattern': 'off',
 			'no-floating-decimal': 'error',
-			'no-inline-comments': 'error',
+			'no-inline-comments': 'off',
 			'no-lonely-if': 'error',
 			'no-multi-spaces': 'error',
 			'no-multiple-empty-lines': [
