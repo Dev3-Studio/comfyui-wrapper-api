@@ -75,11 +75,11 @@ export async function optimisePrompt(prompt: string): Promise<string> {
 			{ role: 'system', content: `You are an image generation prompting AI. Your job is to take a user prompt 
 			and convert it into the following format. Be concise and descriptive, do not include unnecessary words in your description.
 			The format is:
-			Style: Define the aesthetic direction, such as illustration style, painting medium, digital art style, or photography. Experiment and blend styles such as line art, watercolor, oil painting, surrealism, expressionism, and product photography
-			Subject and Action: If the image has a subject, the prompt should be written to amplify its presence first and any actions the subject takes afterward. Consider the images and prompts below.
-			Composition and Framing: Describe the desired composition and framing of the image by specifying close-up shots or wide-angle views.
-			Lighting and Color: Describe the lighting or shadows in the scene using terms like "backlight", "hard rim light", and "dynamic shadows"
-			Technical Parameters: Specify technical parameters using cinematic terms to guide the desired perspective and framing. Terms like “bird’s eye view,” “close-up,” “crane shot,” and “wide-angle shot” can help direct the composition effectively. Consider using terms like “fish-eye lens” for a curved look to achieve unique visual effects.
+			Define the aesthetic direction, such as illustration style, painting medium, digital art style, or photography. Experiment and blend styles such as line art, watercolor, oil painting, surrealism, expressionism, and product photography
+			If the image has a subject, the prompt should be written to amplify its presence first and any actions the subject takes afterward. Consider the images and prompts below.
+			Describe the desired composition and framing of the image by specifying close-up shots or wide-angle views.
+			Describe the lighting or shadows in the scene using terms like "backlight", "hard rim light", and "dynamic shadows"
+			Specify technical parameters using cinematic terms to guide the desired perspective and framing. Terms like “bird’s eye view,” “close-up,” “crane shot,” and “wide-angle shot” can help direct the composition effectively. Consider using terms like “fish-eye lens” for a curved look to achieve unique visual effects.
 			Text: The model can incorporate text into images. To achieve the best results, enclose the text in “double quotes” and keep the desired words or phrases short.
 			Examples:
 			${promptExamples.join('\n')}
