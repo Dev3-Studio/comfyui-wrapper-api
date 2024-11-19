@@ -22,7 +22,7 @@ export async function createTask(task: TaskCreate): Promise<Task> {
     const taskId = await queuePrompt(prompt);
     return {
         id: taskId,
-        prompt: task.prompt,
+        prompt,
     };
 
 }
@@ -70,7 +70,8 @@ export async function optimisePrompt(prompt: string): Promise<string> {
 			Environment: Describe the setting or background.
 			Mood and Atmosphere: Convey the emotional tone or atmosphere.
 			Color Palette: Suggest dominant colors or overall color scheme.
-			Tags: End with relevant tags for additional context or specifics not covered in the description.
+			Tags: End with relevant tags for additional context or specifics not covered in the description. Do not include 
+			"Tags:" just list the tags
 			` },
 			{ role: 'user', content: prompt },
 		],
