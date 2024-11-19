@@ -29,7 +29,7 @@ export default tseslint.config(
 				},
 			],
 			'brace-style': [
-				'error',
+				'off',
 				'stroustrup',
 				{
 					'allowSingleLine': true,

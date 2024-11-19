@@ -53,10 +53,21 @@ export async function getTaskResult(id: string): Promise<Buffer> {
 
 export async function optimisePrompt(prompt: string): Promise<string> {
 	const chatCompletion = await llmClient.chat.completions.create({
-		messages: [{ role: 'user', content: 'Say this is a test' }],
+		messages: [
+			{ role: 'system', content: `You are an image generation prompting AI. Your job is to take a user prompt 
+			and convert it into the following format. Do not include any of the titles just rearrange the prompt to be 
+			in this format and add any required detail. The format is:
+			Main Description: Describe the primary focus of the image, including the main subject and key actions or features.
+			Artistic Style: Specify the desired artistic style or the medium in which the image should be rendered.
+			Environment: Describe the setting or background.
+			Mood and Atmosphere: Convey the emotional tone or atmosphere.
+			Color Palette: Suggest dominant colors or overall color scheme.
+			Tags: End with relevant tags for additional context or specifics not covered in the description.
+			` },
+			{ role: 'user', content: prompt },
+		],
 		model: 'Meta-Llama-3-1-405B-Instruct-FP8',
 	});
 	console.log(chatCompletion.choices[0].message.content);
-	// todo optimise prompt
-	return prompt;
+	return chatCompletion.choices[0].message.content!;
 }

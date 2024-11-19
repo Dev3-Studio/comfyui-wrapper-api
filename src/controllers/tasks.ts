@@ -3,7 +3,6 @@ import { zTaskCreate } from '../lib/zodSchemas';
 import { z } from 'zod';
 import { fromError } from 'zod-validation-error';
 import * as services from '../services/tasks';
-import { llmClient } from '../init/akashChat';
 
 export async function postTask(req: Request, res: Response) {
 	const { body } = req;
