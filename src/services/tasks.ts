@@ -70,7 +70,8 @@ export async function optimisePrompt(prompt: string): Promise<string> {
 			Describe the setting or background.
 			Convey the emotional tone or atmosphere.
 			Suggest dominant colors or overall color scheme.
-			End with relevant tags for additional context or specifics not covered in the description.
+			End with relevant, comma separated tags for additional context or specifics not covered in the description.
+			Do not include the # character in your tags.
 			` },
 			{ role: 'user', content: prompt },
 		],
