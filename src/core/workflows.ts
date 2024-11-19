@@ -3,33 +3,6 @@ import * as crypto from 'node:crypto';
 import WebSocket from 'ws';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
 
-export function createBasicWorkflow(prompt: string, options?: {
-    seed?: number,
-    aspectRatio?: 'portrait' | 'landscape' | 'square'
-}) {
-    basicWorkflow['KSampler'].inputs.seed = options?.seed ?? parseInt(crypto.randomBytes(2).toString('hex'), 16);
-    basicWorkflow['CLIPTextEncodePositive'].inputs.text = prompt;
-    switch (options?.aspectRatio) {
-        case 'portrait':
-            basicWorkflow['EmptyLatentImage'].inputs.width = 832;
-            basicWorkflow['EmptyLatentImage'].inputs.height = 1216;
-            break;
-        case 'landscape':
-            basicWorkflow['EmptyLatentImage'].inputs.width = 1216;
-            basicWorkflow['EmptyLatentImage'].inputs.height = 832;
-            break;
-        case 'square':
-            basicWorkflow['EmptyLatentImage'].inputs.width = 1024;
-            basicWorkflow['EmptyLatentImage'].inputs.height = 1024;
-            break;
-        default:
-            basicWorkflow['EmptyLatentImage'].inputs.width = 1024;
-            basicWorkflow['EmptyLatentImage'].inputs.height = 1024;
-            break;
-    }
-    return basicWorkflow;
-}
-
 const comfyUiHost = getRequiredEnvVar('COMFY_UI_HOST');
 const comfyUiPort = getRequiredEnvVar('COMFY_UI_PORT');
 
@@ -153,7 +126,18 @@ export class BasicWorkflow extends Workflow {
         seed?: number,
         aspectRatio?: 'portrait' | 'landscape' | 'square'
     }) {
-        const json = createBasicWorkflow(prompt, options);
+        basicWorkflow['KSampler'].inputs.seed = options?.seed ?? parseInt(crypto.randomBytes(2).toString('hex'), 16);
+        basicWorkflow['CLIPTextEncodePositive'].inputs.text = prompt;
+        const dimensions = {
+            'portrait': { width: 832, height: 1216 },
+            'landscape': { width: 1216, height: 832 },
+            'square': { width: 1024, height: 1024 },
+        };
+        basicWorkflow['EmptyLatentImage'].inputs = {
+            ...basicWorkflow['EmptyLatentImage'].inputs,
+            ...dimensions[options?.aspectRatio ?? 'square'],
+        };
+        const json = basicWorkflow;
         super(clientId, json);
     }
     
