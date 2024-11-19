@@ -6,6 +6,6 @@ const router = express.Router();
 router.post('/', postTask);
 router.get('/:id/status', getTaskStatus);
 router.get('/:id/result', getTaskResult);
-router.post('prompt', optimisePrompt);
+router.post('/prompt', optimisePrompt);
 
 export default router;
