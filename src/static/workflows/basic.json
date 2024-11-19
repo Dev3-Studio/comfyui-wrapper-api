@@ -1,5 +1,5 @@
 {
-  "3": {
+  "KSampler": {
     "inputs": {
       "seed": 26686411782383,
       "steps": 8,
@@ -8,19 +8,19 @@
       "scheduler": "karras",
       "denoise": 1,
       "model": [
-        "4",
+        "CheckpointLoaderSimple",
         0
       ],
       "positive": [
-        "6",
+        "CLIPTextEncodePositive",
         0
       ],
       "negative": [
-        "7",
+        "CLIPTextEncodeNegative",
         0
       ],
       "latent_image": [
-        "5",
+        "EmptyLatentImage",
         0
       ]
     },
@@ -29,7 +29,7 @@
       "title": "KSampler"
     }
   },
-  "4": {
+  "CheckpointLoaderSimple": {
     "inputs": {
       "ckpt_name": "sd_xl_dreamshaperXL_turboDpmppSDE.safetensors"
     },
@@ -38,7 +38,7 @@
       "title": "Load Checkpoint"
     }
   },
-  "5": {
+  "EmptyLatentImage": {
     "inputs": {
       "width": 512,
       "height": 512,
@@ -49,11 +49,11 @@
       "title": "Empty Latent Image"
     }
   },
-  "6": {
+  "CLIPTextEncodePositive": {
     "inputs": {
       "text": "beautiful scenery nature glass bottle landscape, purple galaxy bottle",
       "clip": [
-        "4",
+        "CheckpointLoaderSimple",
         1
       ]
     },
@@ -62,11 +62,11 @@
       "title": "CLIP Text Encode (Prompt)"
     }
   },
-  "7": {
+  "CLIPTextEncodeNegative": {
     "inputs": {
       "text": "",
       "clip": [
-        "4",
+        "CheckpointLoaderSimple",
         1
       ]
     },
@@ -75,14 +75,14 @@
       "title": "CLIP Text Encode (Prompt)"
     }
   },
-  "8": {
+  "VAEDecode": {
     "inputs": {
       "samples": [
-        "3",
+        "KSampler",
         0
       ],
       "vae": [
-        "4",
+        "CheckpointLoaderSimple",
         2
       ]
     },
@@ -91,11 +91,11 @@
       "title": "VAE Decode"
     }
   },
-  "9": {
+  "SaveImage": {
     "inputs": {
       "filename_prefix": "ComfyUI",
       "images": [
-        "8",
+        "VAEDecode",
         0
       ]
     },
