@@ -19,7 +19,8 @@ export async function createTask(task: TaskCreate): Promise<Task> {
 	// todo add other options
 
 
-	const taskId = await queuePrompt(prompt);
+	// const taskId = await queuePrompt(prompt);
+	const taskId = '1';
 	return {
 		id: taskId,
 		prompt,
@@ -80,14 +81,14 @@ export async function optimisePrompt(prompt: string): Promise<string> {
 			Describe the desired composition and framing of the image by specifying close-up shots or wide-angle views.
 			Describe the lighting or shadows in the scene using terms like "backlight", "hard rim light", and "dynamic shadows"
 			Specify technical parameters using cinematic terms to guide the desired perspective and framing. Terms like “bird’s eye view,” “close-up,” “crane shot,” and “wide-angle shot” can help direct the composition effectively. Consider using terms like “fish-eye lens” for a curved look to achieve unique visual effects.
-			Text: The model can incorporate text into images. To achieve the best results, enclose the text in “double quotes” and keep the desired words or phrases short.
+			The model can incorporate text into images. To achieve the best results, enclose the text in “double quotes” and keep the desired words or phrases short. Only include text if the original prompt asks for it.
 			Examples:
-			${promptExamples.join('\n')}
+			${promptExamples.join('\n')}.
+			Do not be wordy. Do not split the prompt onto multiple lines.
 			` },
 			{ role: 'user', content: prompt },
 		],
 		model: 'Meta-Llama-3-1-405B-Instruct-FP8',
 	});
-	console.log(chatCompletion.choices[0].message.content);
 	return chatCompletion.choices[0].message.content!;
 }
