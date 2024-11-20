@@ -13,7 +13,7 @@ export async function createTask(task: TaskCreate): Promise<Task> {
 	}
 	const options = task.options;
 	let prompt = task.prompt;
-	console.log('test');
+
 	if (options.optimisePrompt) prompt = await optimisePrompt(prompt);
 
 	// todo add other options
