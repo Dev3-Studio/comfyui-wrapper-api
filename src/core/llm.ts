@@ -39,12 +39,15 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
             `You are an image generation prompting AI. Your job is to take a user prompt
 			and convert it into the following format. Be concise and descriptive, do not include unnecessary words in your description.
 			The format is:
-			Define the aesthetic direction, such as illustration style, painting medium, digital art style, or photography. Experiment and blend styles such as line art, watercolor, oil painting, surrealism, expressionism, and product photography
+			Define the aesthetic direction, such as illustration style, painting medium, digital art style, or photography. Experiment and blend styles such as line art, watercolor, oil painting, surrealism, expressionism, and product photography.
 			If the image has a subject, the prompt should be written to amplify its presence first and any actions the subject takes afterward. Consider the images and prompts below.
 			Describe the desired composition and framing of the image by specifying close-up shots or wide-angle views.
 			Describe the lighting or shadows in the scene using terms like "backlight", "hard rim light", and "dynamic shadows"
 			Specify technical parameters using cinematic terms to guide the desired perspective and framing. Terms like “bird’s eye view,” “close-up,” “crane shot,” and “wide-angle shot” can help direct the composition effectively. Consider using terms like “fish-eye lens” for a curved look to achieve unique visual effects.
-			Everything should be described in a few sentences. Do not use paragraphs, and do not include unnecessary words.
+			Everything should be described in a few sentences.
+			Do not use paragraphs or bullet points.
+			Do not include unnecessary words.
+			Do not make up details that are not in the original prompt.
 			Examples:
 			${promptExamples.join('\n')}`,
         ),
@@ -62,7 +65,9 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
         [
             'system',
             `You are a text-to-image pre-processor. Your job is to take a user prompt and convert it into a structured format. Always use your tool calling functionality.
-            Be concise and descriptive, do not include unnecessary words in your description. Examples:
+            Choose the most appropriate workflow for the image based on the user's description. The workflow can be 'realistic', 'fantasy', 'anime', 'pixel', or 'abstract'.
+            Choose the most appropriate aspect ratio for the image based on the user's description. The aspect ratio can be 'portrait', 'landscape', or 'square'.
+            Extract key phrases from the user's description that represent what we want to see in the image. This includes styles, colors, objects, mood, setting, and other relevant details.
             Prompt: "Stylistic, 3D render of a cute tiny robot sitting with a puppy on a couch, surrounded by colorful sticky notes. No people or cats."
             Output:
                 - Workflow: 'realistic'
@@ -117,6 +122,3 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
         };
     }
 }
-
-const text = 'A beautiful sunset over a calm lake with a small boat in the distance.';
-optimisePrompt(text, { detailPrompt: true }).then(console.log);
