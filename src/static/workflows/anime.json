@@ -1,0 +1,178 @@
+{
+  "CheckpointLoaderSimple": {
+    "inputs": {
+      "ckpt_name": "pony-waiANINSFWPONYXL_v90.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+  "KSampler": {
+    "inputs": {
+      "seed": 1015052822051508,
+      "steps": 30,
+      "cfg": 7,
+      "sampler_name": "dpmpp_2m",
+      "scheduler": "karras",
+      "denoise": 1,
+      "model": [
+        "CheckpointLoaderSimple",
+        0
+      ],
+      "positive": [
+        "CLIPTextEncodePositive",
+        0
+      ],
+      "negative": [
+        "CLIPTextEncodeNegative",
+        0
+      ],
+      "latent_image": [
+        "EmptyLatentImage",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+  "CLIPTextEncodePositive": {
+    "inputs": {
+      "text": "score_9, score_8_up, score_7_up, source_anime, perspective,",
+      "clip": [
+        "CheckpointLoaderSimple",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "CLIPTextEncodeNegative": {
+    "inputs": {
+      "text": "worst quality,bad quality,jpeg artifacts, source_cartoon, \n3d, (censor),monochrome,blurry, lowres,watermark, ",
+      "clip": [
+        "CheckpointLoaderSimple",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Prompt)"
+    }
+  },
+  "EmptyLatentImage": {
+    "inputs": {
+      "width": 1216,
+      "height": 832,
+      "batch_size": 1
+    },
+    "class_type": "EmptyLatentImage",
+    "_meta": {
+      "title": "Empty Latent Image"
+    }
+  },
+  "VAEDecode": {
+    "inputs": {
+      "samples": [
+        "KSampler",
+        0
+      ],
+      "vae": [
+        "CheckpointLoaderSimple",
+        2
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    }
+  },
+  "UltralyticsDetectorProvider": {
+    "inputs": {
+      "model_name": "bbox/face_yolov8m.pt"
+    },
+    "class_type": "UltralyticsDetectorProvider",
+    "_meta": {
+      "title": "UltralyticsDetectorProvider"
+    }
+  },
+  "FaceDetailer": {
+    "inputs": {
+      "guide_size": 832,
+      "guide_size_for": true,
+      "max_size": 1216,
+      "seed": 483127860650064,
+      "steps": 20,
+      "cfg": 8,
+      "sampler_name": "euler",
+      "scheduler": "normal",
+      "denoise": 0.5,
+      "feather": 5,
+      "noise_mask": true,
+      "force_inpaint": true,
+      "bbox_threshold": 0.5,
+      "bbox_dilation": 10,
+      "bbox_crop_factor": 3,
+      "sam_detection_hint": "center-1",
+      "sam_dilation": 0,
+      "sam_threshold": 0.93,
+      "sam_bbox_expansion": 0,
+      "sam_mask_hint_threshold": 0.7,
+      "sam_mask_hint_use_negative": "False",
+      "drop_size": 10,
+      "wildcard": "",
+      "cycle": 1,
+      "inpaint_model": false,
+      "noise_mask_feather": 20,
+      "image": [
+        "VAEDecode",
+        0
+      ],
+      "model": [
+        "CheckpointLoaderSimple",
+        0
+      ],
+      "clip": [
+        "CheckpointLoaderSimple",
+        1
+      ],
+      "vae": [
+        "CheckpointLoaderSimple",
+        2
+      ],
+      "positive": [
+        "CLIPTextEncodePositive",
+        0
+      ],
+      "negative": [
+        "CLIPTextEncodeNegative",
+        0
+      ],
+      "bbox_detector": [
+        "UltralyticsDetectorProvider",
+        0
+      ]
+    },
+    "class_type": "FaceDetailer",
+    "_meta": {
+      "title": "FaceDetailer"
+    }
+  },
+  "SaveImage": {
+    "inputs": {
+      "filename_prefix": "ComfyUI",
+      "images": [
+        "FaceDetailer",
+        0
+      ]
+    },
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    }
+  }
+}
