@@ -3,7 +3,8 @@ import { z } from 'zod';
 import { ChatOpenAI } from '@langchain/openai';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { StringOutputParser } from '@langchain/core/output_parsers';
+import { JsonOutputParser, StringOutputParser } from '@langchain/core/output_parsers';
+import { AspectRatio } from './workflows';
 
 interface OptimisedPromptOptions {
     detailPrompt?: boolean;
@@ -12,8 +13,8 @@ interface OptimisedPromptOptions {
 interface OptimisedPrompt {
     prompt: string;
     detailedPrompt: string | null;
-    workflow: 'realistic' | 'fantasy' | 'anime' | 'pixel' | 'abstract' | null;
-    aspectRatio: 'portrait' | 'landscape' | 'square' | null;
+    workflow: 'realistic' | 'fantasy' | 'anime' | null;
+    aspectRatio: AspectRatio | null;
     keyPhrases: string[] | null;
 }
 
@@ -54,11 +55,11 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
         new HumanMessage(prompt),
     ];
     
-    let optimisedPrompt = prompt;
+    let detailedPrompt = prompt;
     if (options?.detailPrompt) {
         const result = await llm.invoke(messages);
         const parser = new StringOutputParser();
-        optimisedPrompt = await parser.invoke(result);
+        detailedPrompt = await parser.invoke(result);
     }
     
     const template = ChatPromptTemplate.fromMessages([
@@ -85,7 +86,7 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
     
     const parsingSchema = z.object({
         workflow: z
-            .enum(['realistic', 'fantasy', 'anime', 'pixel', 'abstract'])
+            .enum(['realistic', 'fantasy', 'anime'])
             .describe('The workflow to utilise when generating the image'),
         aspectRatio: z
             .enum(['portrait', 'landscape', 'square'])
@@ -102,23 +103,42 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
     });
     const pipeline = template.pipe(structuredLlm);
     
-    const parsedOutput = await pipeline.invoke({ input: optimisedPrompt }).catch(() => null);
-    if (parsedOutput && parsedOutput.parsed === null && parsedOutput.raw.content !== '') {
+    const pipeResult = await pipeline.invoke({ input: detailedPrompt }).catch(() => null);
+    const raw = pipeResult?.raw.content.toString();
+    let parsed: z.infer<typeof parsingSchema> | undefined = pipeResult?.parsed;
+    if (!parsed && raw) {
         // Structured output failed, attempt to re-parse raw content
-        const rawContent = parsedOutput.raw.content.toString();
-        const rawParse = await structuredLlm.invoke(rawContent).catch(() => null);
-        if (rawParse) parsedOutput.parsed = rawParse.parsed;
+        const parser = new JsonOutputParser<z.infer<typeof parsingSchema>>();
+        const contentParseTemplate = ChatPromptTemplate.fromMessages([
+            [
+                'system',
+                `You are a JSON parser.
+                Respond only in valid JSON.
+                The JSON object you return should match the following schema:
+                {{
+                    workflow: 'realistic' | 'fantasy' | 'anime';
+                    aspectRatio: 'portrait' | 'landscape' | 'square';
+                    keyPhrases: string[];
+                }}
+                `,
+            ],
+            ['user', '{input}'],
+        ]);
+        const contentParsePipeline = contentParseTemplate.pipe(llm).pipe(parser);
+        const contentParsePipeResult = await contentParsePipeline.invoke({ input: raw }).catch(console.error);
+        const parse = parsingSchema.safeParse(contentParsePipeResult);
+        if (parse.success) {
+            parsed = parse.data;
+        }
     }
     
-    if (!parsedOutput || !parsedOutput.parsed) {
-        return { prompt: optimisedPrompt, detailedPrompt: null, workflow: null, aspectRatio: null, keyPhrases: null };
+    if (!parsed) {
+        return { prompt, detailedPrompt: null, workflow: null, aspectRatio: null, keyPhrases: null };
     } else {
         return {
             prompt,
-            detailedPrompt: optimisedPrompt !== prompt ? optimisedPrompt : null,
-            workflow: parsedOutput.parsed.workflow,
-            aspectRatio: parsedOutput.parsed.aspectRatio,
-            keyPhrases: parsedOutput.parsed.keyPhrases,
+            detailedPrompt,
+            ...parsed,
         };
     }
 }
