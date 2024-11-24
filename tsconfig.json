@@ -1,22 +1,22 @@
 {
-	"compilerOptions": {
-		"target": "es2021",
-		"module": "commonjs",
-		"lib": [
-			"es2021"
-		],
-		"allowJs": true,
-		"outDir": "build",
-		"rootDir": "src",
-		"strict": true,
-		"noImplicitAny": true,
-		"esModuleInterop": true,
-		"resolveJsonModule": true
-	},
-	"exclude": [
-		"eslint.config.mjs",
-		"node_modules",
-		"build",
-		"dist"
-	]
+  "compilerOptions": {
+    "target": "es2021",
+    "module": "commonjs",
+    "lib": [
+      "es2021"
+    ],
+    "allowJs": true,
+    "outDir": "build",
+    "rootDir": "src",
+    "strict": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  },
+  "exclude": [
+    "eslint.config.mjs",
+    "node_modules",
+    "build",
+    "dist"
+  ]
 }
