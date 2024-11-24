@@ -1,8 +1,8 @@
-import basicWorkflow from '../static/workflows/basic.json';
-import animeWorkflow from '../static/workflows/anime.json';
+import sdxlWorkflow from '../static/workflows/sdxl.json';
 import * as crypto from 'node:crypto';
 import WebSocket from 'ws';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
+import { z } from 'zod';
 
 const comfyUiHost = getRequiredEnvVar('COMFY_UI_HOST');
 const comfyUiPort = getRequiredEnvVar('COMFY_UI_PORT');
@@ -25,7 +25,7 @@ export class Workflow {
     private ws: WebSocket;
     private progress?: Progress;
     
-    protected readonly json: any; // Workflow in API format
+    protected json: any; // Workflow in API format
     protected promptId?: string;
     
     constructor(clientId: string, json: any) {
@@ -119,81 +119,60 @@ export class Workflow {
     };
 }
 
-export class BasicWorkflow extends Workflow {
-    private readonly TOTAL_STEPS = 11;
-    
-    constructor(clientId: string, prompt: string, options?: {
-        seed?: number,
-        aspectRatio?: 'portrait' | 'landscape' | 'square'
-    }) {
-        basicWorkflow['KSampler'].inputs.seed = options?.seed ?? parseInt(crypto.randomBytes(2).toString('hex'), 16);
-        basicWorkflow['CLIPTextEncodePositive'].inputs.text = prompt;
-        const dimensions = {
-            'portrait': { width: 832, height: 1216 },
-            'landscape': { width: 1216, height: 832 },
-            'square': { width: 1024, height: 1024 },
-        };
-        basicWorkflow['EmptyLatentImage'].inputs = {
-            ...basicWorkflow['EmptyLatentImage'].inputs,
-            ...dimensions[options?.aspectRatio ?? 'square'],
-        };
-        const json = basicWorkflow;
-        super(clientId, json);
-    }
-    
-    protected override handleMessage(message: Message) {
-        const data = message.data as { prompt_id: string };
-        if (data.prompt_id !== this.promptId) return;
-        switch (message.type) {
-            case 'execution_start':
-                this.setProgress('Starting', 0);
-                break;
-            case 'execution_success':
-                this.setProgress('Completed', 1);
-                break;
-            default:
-                break;
-        }
-        if (message.type === 'executing') {
-            const { node } = message.data as { node: string };
-            switch (node) {
-                case 'VAEDecode':
-                    this.setProgress('VAE decoding', 9 / this.TOTAL_STEPS);
-                    break;
-                case 'SaveImage':
-                    this.setProgress('Saving image', 10 / this.TOTAL_STEPS);
-                    break;
-                default:
-                    break;
-            }
-        }
-        if (message.type === 'progress') {
-            const { value } = message.data as { value: number };
-            this.setProgress('Running inference', value / this.TOTAL_STEPS);
-        }
-    }
-}
+export type Checkpoint = 'juggernautxl' | 'ponyxl' | 'dreamshaperxl';
+export type SamplerName = 'dpmpp_2m' | 'dpmpp_sde' | 'euler' | 'euler_ancestral';
+export type Scheduler = 'normal' | 'karras';
+export type AspectRatio = 'portrait' | 'landscape' | 'square';
 
-export class AnimeWorkflow extends Workflow {
+export class SDXLBasicWorkflow extends Workflow {
     private readonly INFERENCE_STEPS = 53;
     
-    constructor(clientId: string, prompt: string, options?: {
-        seed?: number,
-        aspectRatio?: 'portrait' | 'landscape' | 'square',
-        keyPhrases?: string[]
-    }) {
-        animeWorkflow['KSampler'].inputs.seed = options?.seed ?? parseInt(crypto.randomBytes(2).toString('hex'), 16);
-        animeWorkflow['CLIPTextEncodePositive'].inputs.text = options?.keyPhrases?.join(', ') ?? prompt;
-        const dimensions = {
-            'portrait': { width: 832, height: 1216 },
-            'landscape': { width: 1216, height: 832 },
-            'square': { width: 1024, height: 1024 },
+    constructor(
+        clientId: string,
+        positivePrompt: string,
+        negativePrompt: string,
+        checkpoint: Checkpoint,
+        seed: number,
+        steps: number,
+        cfg: number,
+        samplerName: SamplerName,
+        scheduler: Scheduler,
+        aspectRatio?: AspectRatio,
+    ) {
+        sdxlWorkflow['CheckpointLoaderSimple'].inputs.ckpt_name = checkpoint + '.safetensors';
+        
+        const parseSeed = z.number().int().min(0).safeParse(seed);
+        if (!parseSeed.success) throw new Error('Invalid seed');
+        sdxlWorkflow['KSampler'].inputs.seed = parseSeed.data;
+        
+        const parseSteps = z.number().int().min(1).safeParse(steps);
+        if (!parseSteps.success) throw new Error('Invalid steps');
+        sdxlWorkflow['KSampler'].inputs.steps = parseSteps.data;
+        
+        const parseCfg = z.number().min(0.1).safeParse(cfg);
+        if (!parseCfg.success) throw new Error('Invalid cfg');
+        sdxlWorkflow['KSampler'].inputs.cfg = cfg;
+        
+        sdxlWorkflow['KSampler'].inputs.sampler_name = samplerName;
+        sdxlWorkflow['KSampler'].inputs.scheduler = scheduler;
+        
+        sdxlWorkflow['CLIPTextEncodePositive'].inputs.text = positivePrompt;
+        sdxlWorkflow['CLIPTextEncodeNegative'].inputs.text = negativePrompt;
+        
+        const MIN_RESOLUTION = 832;
+        const MAX_RESOLUTION = 1216;
+        const SQUARE_RESOLUTION = 1024;
+        const DIMENSIONS = {
+            'portrait': { width: MIN_RESOLUTION, height: MAX_RESOLUTION },
+            'landscape': { width: MAX_RESOLUTION, height: MIN_RESOLUTION },
+            'square': { width: SQUARE_RESOLUTION, height: SQUARE_RESOLUTION },
         };
-        animeWorkflow['EmptyLatentImage'].inputs = {
-            ...animeWorkflow['EmptyLatentImage'].inputs,
-            ...dimensions[options?.aspectRatio ?? 'square'],
+        sdxlWorkflow['EmptyLatentImage'].inputs = {
+            ...sdxlWorkflow['EmptyLatentImage'].inputs,
+            ...DIMENSIONS[aspectRatio ?? 'square'],
         };
-        super(clientId, animeWorkflow);
+        
+        super(clientId, sdxlWorkflow);
     }
     
     protected override handleMessage(message: Message) {
@@ -225,7 +204,80 @@ export class AnimeWorkflow extends Workflow {
         if (message.type === 'progress') {
             const { value, node } = message.data as { value: number, node: string };
             if (node === 'KSampler') this.setProgress('Running inference', value / this.INFERENCE_STEPS);
-            if (node === 'FaceDetailer') this.setProgress('Running face detailer', value / this.INFERENCE_STEPS);
+            if (node === 'FaceDetailer') this.setProgress('Running face detailer', (value + 31) / this.INFERENCE_STEPS);
         }
+    }
+}
+
+export class AnimeWorkflow extends SDXLBasicWorkflow {
+    constructor(clientId: string, prompt: string, options?: {
+        seed?: number;
+        aspectRatio?: AspectRatio,
+        keyPhrases?: string[]
+    }) {
+        const keyPhrases = options?.keyPhrases ?? [];
+        const positivePromptKeywords = ['score_9', 'score_8_up', 'score_7_up', 'source_anime'];
+        const negativePromptKeywords = ['worst quality', 'bad quality', 'jpeg artifacts', 'source_cartoon', '3d', '(censor)', 'monochrome', 'blurry', 'lowres', 'watermark'];
+        const positivePrompt = keyPhrases.length > 0 ? [...positivePromptKeywords, ...keyPhrases].join(', ') : positivePromptKeywords.join(', ') + ', ' + prompt;
+        const negativePrompt = negativePromptKeywords.join(', ');
+        super(
+            clientId,
+            positivePrompt,
+            negativePrompt,
+            'ponyxl',
+            options?.seed ?? parseInt(crypto.randomBytes(8).toString('hex'), 16),
+            30,
+            7,
+            'dpmpp_2m',
+            'karras',
+            options?.aspectRatio,
+        );
+    }
+}
+
+export class RealisticWorkflow extends SDXLBasicWorkflow {
+    constructor(clientId: string, prompt: string, options?: {
+        seed?: number;
+        aspectRatio?: AspectRatio,
+        keyPhrases?: string[]
+    }) {
+        const keyPhrases = options?.keyPhrases ?? [];
+        const positivePromptKeywords = ['High Resolution'];
+        const negativePromptKeywords = ['fake eyes', 'bad hands', 'deformed eyes', 'bad eyes', 'cgi', '3D', 'digital', 'airbrushed'];
+        const positivePrompt = keyPhrases.length > 0 ? [...positivePromptKeywords, ...keyPhrases].join(', ') : positivePromptKeywords.join(', ') + ', ' + prompt;
+        const negativePrompt = negativePromptKeywords.join(', ');
+        super(
+            clientId,
+            positivePrompt,
+            negativePrompt,
+            'juggernautxl',
+            options?.seed ?? parseInt(crypto.randomBytes(8).toString('hex'), 16),
+            30,
+            4.5,
+            'dpmpp_2m',
+            'karras',
+            options?.aspectRatio,
+        );
+    }
+}
+
+export class FantasyWorkflow extends SDXLBasicWorkflow {
+    constructor(clientId: string, prompt: string, options?: {
+        seed?: number;
+        aspectRatio?: AspectRatio,
+        keyPhrases?: string[]
+    }) {
+        super(
+            clientId,
+            options?.keyPhrases?.join(', ') ?? prompt,
+            '',
+            'dreamshaperxl',
+            options?.seed ?? parseInt(crypto.randomBytes(8).toString('hex'), 16),
+            8,
+            2,
+            'dpmpp_sde',
+            'karras',
+            options?.aspectRatio,
+        );
     }
 }

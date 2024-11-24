@@ -1,7 +1,7 @@
 {
   "CheckpointLoaderSimple": {
     "inputs": {
-      "ckpt_name": "pony-waiANINSFWPONYXL_v90.safetensors"
+      "ckpt_name": "juggernautxl.safetensors"
     },
     "class_type": "CheckpointLoaderSimple",
     "_meta": {
@@ -12,7 +12,7 @@
     "inputs": {
       "seed": 1015052822051508,
       "steps": 30,
-      "cfg": 7,
+      "cfg": 4.5,
       "sampler_name": "dpmpp_2m",
       "scheduler": "karras",
       "denoise": 1,
@@ -40,7 +40,7 @@
   },
   "CLIPTextEncodePositive": {
     "inputs": {
-      "text": "score_9, score_8_up, score_7_up, source_anime, perspective,",
+      "text": "",
       "clip": [
         "CheckpointLoaderSimple",
         1
@@ -53,7 +53,7 @@
   },
   "CLIPTextEncodeNegative": {
     "inputs": {
-      "text": "worst quality,bad quality,jpeg artifacts, source_cartoon, \n3d, (censor),monochrome,blurry, lowres,watermark, ",
+      "text": "",
       "clip": [
         "CheckpointLoaderSimple",
         1
