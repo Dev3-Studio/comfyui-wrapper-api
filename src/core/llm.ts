@@ -18,7 +18,7 @@ interface OptimisedPrompt {
     keyPhrases: string[] | null;
 }
 
-export async function optimisePrompt(prompt: string, options?: OptimisedPromptOptions) {
+export async function optimisePrompt(prompt: string, options?: OptimisedPromptOptions): Promise<OptimisedPrompt> {
     const llm = new ChatOpenAI(
         {
             apiKey: getRequiredEnvVar('AKASHCHAT_KEY'),
