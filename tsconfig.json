@@ -11,12 +11,14 @@
     "strict": true,
     "noImplicitAny": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "skipLibCheck": true
   },
   "exclude": [
     "eslint.config.mjs",
     "node_modules",
     "build",
-    "dist"
+    "dist",
+    "drizzle.config.ts"
   ]
 }
