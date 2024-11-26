@@ -56,8 +56,3 @@ export async function getTaskResult(id: string): Promise<Buffer> {
     
     return await task.getResult();
 }
-
-export async function optimisePrompt(prompt: string): Promise<string> {
-    const optimisedPrompt = await _optimisePrompt(prompt, { detailPrompt: true });
-    return optimisedPrompt.detailedPrompt ?? prompt;
-}
