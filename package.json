@@ -5,8 +5,8 @@
   "scripts": {
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
-    "build": "rimraf ./build && tsc",
-    "start": "node ./build/index.js",
+    "build": "rimraf build && tsc && copyfiles -u 1 src/static/**/* build",
+    "start": "node build/index.js",
     "dev": "npm run build && npm run start"
   },
   "keywords": [],
@@ -22,6 +22,7 @@
     "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "^8.13.0",
     "@typescript-eslint/parser": "^8.13.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^9.14.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.6.3",
