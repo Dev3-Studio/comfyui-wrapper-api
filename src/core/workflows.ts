@@ -128,9 +128,23 @@ export class Workflow {
     };
 }
 
-export type Checkpoint = 'juggernautxl' | 'ponyxl' | 'dreamshaperxl';
-export type SamplerName = 'dpmpp_2m' | 'dpmpp_sde' | 'euler' | 'euler_ancestral';
-export type Scheduler = 'normal' | 'karras';
+export enum Checkpoint {
+    JuggernautXL = 'juggernautxl',
+    PonyXL = 'ponyxl',
+    DreamshaperXL = 'dreamshaperxl'
+}
+
+export enum SamplerName {
+    Dpmpp2m = 'dpmpp_2m',
+    DpmppSde = 'dpmpp_sde',
+    Euler = 'euler',
+    EulerAncestral = 'euler_ancestral'
+}
+
+export enum Scheduler {
+    Normal = 'normal',
+    Karras = 'karras'
+}
 
 export enum AspectRatio {
     Portrait = 'portrait',
@@ -189,7 +203,7 @@ export class SDXLBasicWorkflow extends Workflow {
         };
         sdxlWorkflow['EmptyLatentImage'].inputs = {
             ...sdxlWorkflow['EmptyLatentImage'].inputs,
-            ...DIMENSIONS[aspectRatio ?? 'square'],
+            ...DIMENSIONS[aspectRatio ?? AspectRatio.Square],
         };
         
         super(clientId, sdxlWorkflow);
@@ -244,12 +258,12 @@ export class AnimeWorkflow extends SDXLBasicWorkflow {
             clientId,
             positivePrompt,
             negativePrompt,
-            'ponyxl',
+            Checkpoint.PonyXL,
             options?.seed ?? getRandomSeed(),
             30,
             7,
-            'dpmpp_2m',
-            'karras',
+            SamplerName.Dpmpp2m,
+            Scheduler.Karras,
             options?.aspectRatio,
         );
     }
@@ -270,12 +284,12 @@ export class RealisticWorkflow extends SDXLBasicWorkflow {
             clientId,
             positivePrompt,
             negativePrompt,
-            'juggernautxl',
+            Checkpoint.JuggernautXL,
             options?.seed ?? getRandomSeed(),
             30,
             4.5,
-            'dpmpp_2m',
-            'karras',
+            SamplerName.Dpmpp2m,
+            Scheduler.Karras,
             options?.aspectRatio,
         );
     }
@@ -291,12 +305,12 @@ export class FantasyWorkflow extends SDXLBasicWorkflow {
             clientId,
             options?.keyPhrases?.join(', ') ?? prompt,
             '',
-            'dreamshaperxl',
+            Checkpoint.DreamshaperXL,
             options?.seed ?? getRandomSeed(),
             8,
             2,
-            'dpmpp_sde',
-            'karras',
+            SamplerName.DpmppSde,
+            Scheduler.Karras,
             options?.aspectRatio,
         );
     }
