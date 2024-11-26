@@ -1,4 +1,4 @@
-import { AnimeWorkflow, AspectRatio, FantasyWorkflow, RealisticWorkflow, Workflow } from '../core/workflows';
+import { AnimeWorkflow, AspectRatio, FantasyWorkflow, RealisticWorkflow, Workflow, Workflows } from '../core/workflows';
 import crypto from 'crypto';
 
 const promptJobs = new Map<string, Workflow>();
@@ -6,9 +6,9 @@ const promptJobs = new Map<string, Workflow>();
 interface QueuePromptOptions {
     clientId: string;
     prompt: string;
-    workflow: 'realistic' | 'fantasy' | 'anime';
-    aspectRatio: AspectRatio;
-    keyPhrases: string[];
+    workflow: Workflows;
+    aspectRatio?: AspectRatio;
+    keyPhrases?: string[];
     seed?: number;
 }
 

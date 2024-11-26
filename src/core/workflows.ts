@@ -122,7 +122,18 @@ export class Workflow {
 export type Checkpoint = 'juggernautxl' | 'ponyxl' | 'dreamshaperxl';
 export type SamplerName = 'dpmpp_2m' | 'dpmpp_sde' | 'euler' | 'euler_ancestral';
 export type Scheduler = 'normal' | 'karras';
-export type AspectRatio = 'portrait' | 'landscape' | 'square';
+
+export enum AspectRatio {
+    Portrait = 'portrait',
+    Landscape = 'landscape',
+    Square = 'square',
+}
+
+export enum Workflows {
+    Anime = 'anime',
+    Realistic = 'realistic',
+    Fantasy = 'fantasy',
+}
 
 export class SDXLBasicWorkflow extends Workflow {
     private readonly INFERENCE_STEPS = 53;

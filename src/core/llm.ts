@@ -4,7 +4,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { JsonOutputParser, StringOutputParser } from '@langchain/core/output_parsers';
-import { AspectRatio } from './workflows';
+import { AspectRatio, Workflows } from './workflows';
 
 interface OptimisedPromptOptions {
     detailPrompt?: boolean;
@@ -13,7 +13,7 @@ interface OptimisedPromptOptions {
 interface OptimisedPrompt {
     prompt: string;
     detailedPrompt: string | null;
-    workflow: 'realistic' | 'fantasy' | 'anime' | null;
+    workflow: Workflows | null;
     aspectRatio: AspectRatio | null;
     keyPhrases: string[] | null;
 }
@@ -86,10 +86,10 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
     
     const parsingSchema = z.object({
         workflow: z
-            .enum(['realistic', 'fantasy', 'anime'])
+            .nativeEnum(Workflows)
             .describe('The workflow to utilise when generating the image'),
         aspectRatio: z
-            .enum(['portrait', 'landscape', 'square'])
+            .nativeEnum(AspectRatio)
             .describe('The aspect ratio of the image'),
         keyPhrases: z
             .string()
