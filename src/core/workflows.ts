@@ -159,7 +159,7 @@ export enum Workflows {
 }
 
 export class SDXLBasicWorkflow extends Workflow {
-    private readonly INFERENCE_STEPS = 53;
+    private readonly INFERENCE_STEPS = 54;
     
     constructor(
         clientId: string,
@@ -225,11 +225,14 @@ export class SDXLBasicWorkflow extends Workflow {
         if (message.type === 'executing') {
             const { node } = message.data as { node: string };
             switch (node) {
+                case 'CheckpointLoaderSimple':
+                    this.setProgress('Loading checkpoint', 1 / this.INFERENCE_STEPS);
+                    break;
                 case 'VAEDecode':
-                    this.setProgress('VAE decoding', 31 / this.INFERENCE_STEPS);
+                    this.setProgress('VAE decoding', 32 / this.INFERENCE_STEPS);
                     break;
                 case 'SaveImage':
-                    this.setProgress('Saving image', 52 / this.INFERENCE_STEPS);
+                    this.setProgress('Saving image', 53 / this.INFERENCE_STEPS);
                     break;
                 default:
                     break;
@@ -237,8 +240,8 @@ export class SDXLBasicWorkflow extends Workflow {
         }
         if (message.type === 'progress') {
             const { value, node } = message.data as { value: number, node: string };
-            if (node === 'KSampler') this.setProgress('Running inference', value / this.INFERENCE_STEPS);
-            if (node === 'FaceDetailer') this.setProgress('Running face detailer', (value + 31) / this.INFERENCE_STEPS);
+            if (node === 'KSampler') this.setProgress('Running inference', (value + 1) / this.INFERENCE_STEPS);
+            if (node === 'FaceDetailer') this.setProgress('Running face detailer', (value + 32) / this.INFERENCE_STEPS);
         }
     }
 }
