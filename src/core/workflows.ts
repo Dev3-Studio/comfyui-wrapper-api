@@ -1,8 +1,8 @@
 import sdxlWorkflow from '../static/workflows/sdxl.json';
-import * as crypto from 'node:crypto';
 import WebSocket from 'ws';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
 import { z } from 'zod';
+import { getRandomSeed } from '../utils/getRandomSeed';
 
 const comfyUiHost = getRequiredEnvVar('COMFY_UI_HOST');
 const comfyUiPort = getRequiredEnvVar('COMFY_UI_PORT');
@@ -236,7 +236,7 @@ export class AnimeWorkflow extends SDXLBasicWorkflow {
             positivePrompt,
             negativePrompt,
             'ponyxl',
-            options?.seed ?? parseInt(crypto.randomBytes(8).toString('hex'), 16),
+            options?.seed ?? getRandomSeed(),
             30,
             7,
             'dpmpp_2m',
@@ -262,7 +262,7 @@ export class RealisticWorkflow extends SDXLBasicWorkflow {
             positivePrompt,
             negativePrompt,
             'juggernautxl',
-            options?.seed ?? parseInt(crypto.randomBytes(8).toString('hex'), 16),
+            options?.seed ?? getRandomSeed(),
             30,
             4.5,
             'dpmpp_2m',
@@ -283,7 +283,7 @@ export class FantasyWorkflow extends SDXLBasicWorkflow {
             options?.keyPhrases?.join(', ') ?? prompt,
             '',
             'dreamshaperxl',
-            options?.seed ?? parseInt(crypto.randomBytes(8).toString('hex'), 16),
+            options?.seed ?? getRandomSeed(),
             8,
             2,
             'dpmpp_sde',
