@@ -4,12 +4,15 @@ FROM node:lts-alpine
 WORKDIR /api
 
 # Copy the wrapper api code into the container
-COPY build ./build
+COPY src .
 COPY package.json .
 COPY tsconfig.json .
 
 # Install Node.js dependencies
 RUN npm install --force --omit=dev
+
+# Run build
+RUN npm run build
 
 ENV PORT=3000
 ENV COMFY_UI_HOST=127.0.0.1
