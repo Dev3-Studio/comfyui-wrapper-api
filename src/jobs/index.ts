@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 const promptJobs = new Map<string, Workflow>();
 
-interface QueuePromptOptions {
+interface QueuePromptJobOptions {
     clientId: string;
     prompt: string;
     workflow: Workflows;
@@ -12,7 +12,7 @@ interface QueuePromptOptions {
     seed?: number;
 }
 
-export async function queuePrompt(options: QueuePromptOptions) {
+export async function queuePromptJob(options: QueuePromptJobOptions) {
     options.seed = options.seed || parseInt(crypto.randomBytes(4).toString('hex'), 16);
     const { clientId, prompt, aspectRatio, keyPhrases, seed } = options;
     let workflow: Workflow;
@@ -33,7 +33,7 @@ export async function queuePrompt(options: QueuePromptOptions) {
     void await workflow.startExecution();
     const promptId = workflow.promptId!;
     promptJobs.set(promptId, workflow);
-    return promptId;
+    return workflow;
 }
 
 export function getPromptJob(jobId: string) {
