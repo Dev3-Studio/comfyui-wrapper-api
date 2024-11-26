@@ -1,14 +1,14 @@
 import express, { Request, Response } from 'express';
-import tasks from '../routes/tasks';
+import prompts from '../routes/prompts';
 
 const app = express();
 
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
-	res.send('Hello World');
+    res.send('Hello World');
 });
 
-app.use('/tasks', tasks);
+app.use('/prompts', prompts);
 
 export default app;

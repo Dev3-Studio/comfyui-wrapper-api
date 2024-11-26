@@ -1,23 +1,23 @@
 import { Request, Response } from 'express';
-import { zTaskCreate } from '../lib/zodSchemas';
+import { zPromptCreate } from '../lib/zodSchemas';
 import { z } from 'zod';
 import { fromError } from 'zod-validation-error';
-import * as services from '../services/tasks';
+import * as services from '../services/prompts';
 
-export async function postTask(req: Request, res: Response) {
+export async function postPrompt(req: Request, res: Response) {
     const { body } = req;
     
     
-    const parse = zTaskCreate.safeParse(body);
+    const parse = zPromptCreate.safeParse(body);
     if (!parse.success) {
         const error = fromError(parse.error);
         return res.status(400).json(error.toString());
     }
     
-    const task = parse.data;
+    const prompt = parse.data;
     
     try {
-        const result = await services.createTask(task);
+        const result = await services.createPrompt(prompt);
         return res.status(201).json(result);
     } catch (err) {
         console.error(err);
@@ -25,7 +25,7 @@ export async function postTask(req: Request, res: Response) {
     }
 }
 
-export async function getTaskStatus(req: Request, res: Response) {
+export async function getPromptStatus(req: Request, res: Response) {
     const { id } = req.params;
     
     const parse = z.string().uuid().safeParse(id);
@@ -34,10 +34,10 @@ export async function getTaskStatus(req: Request, res: Response) {
         return res.status(400).json(error.toString());
     }
     
-    const taskId = parse.data;
+    const promptId = parse.data;
     
     try {
-        const result = await services.getTaskStatus(taskId);
+        const result = await services.getPromptStatus(promptId);
         return res.status(200).json(result);
     } catch (err: unknown) {
         if (err instanceof Error && err.message === 'NOT_FOUND') {
@@ -46,7 +46,7 @@ export async function getTaskStatus(req: Request, res: Response) {
     }
 }
 
-export async function getTaskResult(req: Request, res: Response) {
+export async function getPromptResult(req: Request, res: Response) {
     const { id } = req.params;
     
     const parse = z.string().uuid().safeParse(id);
@@ -55,10 +55,10 @@ export async function getTaskResult(req: Request, res: Response) {
         return res.status(400).json(error.toString());
     }
     
-    const taskId = parse.data;
+    const promptId = parse.data;
     
     try {
-        const result = await services.getTaskResult(taskId);
+        const result = await services.getPromptResult(promptId);
         return res.type('png').status(200).send(result);
     } catch (err: unknown) {
         if (err instanceof Error && err.message === 'NOT_FOUND') {

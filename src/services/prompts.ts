@@ -1,23 +1,23 @@
-import { getPromptJob, queuePromptJob } from '../jobs';
-import { Task, TaskCreate, TaskStatus } from '../lib/zodSchemas';
+import { getPromptJob, queuePromptJob } from '../jobs/prompts';
+import { Prompt, PromptCreate, PromptStatus } from '../lib/zodSchemas';
 import { optimisePrompt } from '../core/llm';
 import { getRandomSeed } from '../utils/getRandomSeed';
 import { AspectRatio, Workflows } from '../core/workflows';
 import { getUuidV4 } from '../utils/getUuidV4';
 
-export async function createTask(task: TaskCreate): Promise<Task> {
-    const { prompt, detailPrompt, workflowOverride, aspectRatioOverride, seedOverride } = task;
-    const optimisedPrompt = await optimisePrompt(prompt, {
-        detailPrompt,
+export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
+    const { text, detailText, workflowOverride, aspectRatioOverride, seedOverride } = prompt;
+    const optimisedPrompt = await optimisePrompt(text, {
+        detailText,
     });
     const workflow = workflowOverride || optimisedPrompt.workflow || Workflows.Realistic;
-    const detailedPrompt = optimisedPrompt.detailedPrompt;
+    const detailedText = optimisedPrompt.detailedText;
     const aspectRatio = aspectRatioOverride || optimisedPrompt.aspectRatio || undefined;
     const keyPhrases = optimisedPrompt.keyPhrases ?? undefined;
     const seed = seedOverride || getRandomSeed();
     const job = await queuePromptJob({
         workflow,
-        prompt: detailedPrompt || prompt,
+        text: detailedText || text,
         aspectRatio,
         seed,
         keyPhrases: keyPhrases,
@@ -26,21 +26,21 @@ export async function createTask(task: TaskCreate): Promise<Task> {
     return {
         id: job.promptId!,
         aspectRatio: aspectRatio || AspectRatio.Square,
-        prompt: detailedPrompt || prompt,
-        detailedPrompt: detailedPrompt || undefined,
+        text: detailedText || prompt.text,
+        detailedText: detailedText || undefined,
         seed,
         workflow,
     };
 }
 
-export async function getTaskStatus(id: string): Promise<TaskStatus> {
-    const task = getPromptJob(id);
-    if (!task) {
+export async function getPromptStatus(id: string): Promise<PromptStatus> {
+    const prompt = getPromptJob(id);
+    if (!prompt) {
         throw new Error('NOT_FOUND');
     }
-    const progress = task.progress;
+    const progress = prompt.progress;
     
-    if (!task.promptId || !progress) {
+    if (!prompt.promptId || !progress) {
         throw new Error('NOT_FOUND');
     }
     return {
@@ -51,15 +51,15 @@ export async function getTaskStatus(id: string): Promise<TaskStatus> {
     };
 }
 
-export async function getTaskResult(id: string): Promise<Buffer> {
-    const task = getPromptJob(id);
-    if (!task) {
+export async function getPromptResult(id: string): Promise<Buffer> {
+    const prompt = getPromptJob(id);
+    if (!prompt) {
         throw new Error('NOT_FOUND');
     }
-    const progress = task.progress;
+    const progress = prompt.progress;
     if (progress && progress.value !== 1) {
         throw new Error('NOT_COMPLETED');
     }
     
-    return await task.getResult();
+    return await prompt.getResult();
 }

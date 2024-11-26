@@ -1,11 +1,11 @@
 import { AnimeWorkflow, AspectRatio, FantasyWorkflow, RealisticWorkflow, Workflow, Workflows } from '../core/workflows';
-import crypto from 'crypto';
+import { getRandomSeed } from '../utils/getRandomSeed';
 
 const promptJobs = new Map<string, Workflow>();
 
 interface QueuePromptJobOptions {
     clientId: string;
-    prompt: string;
+    text: string;
     workflow: Workflows;
     aspectRatio?: AspectRatio;
     keyPhrases?: string[];
@@ -13,21 +13,21 @@ interface QueuePromptJobOptions {
 }
 
 export async function queuePromptJob(options: QueuePromptJobOptions) {
-    options.seed = options.seed || parseInt(crypto.randomBytes(4).toString('hex'), 16);
-    const { clientId, prompt, aspectRatio, keyPhrases, seed } = options;
+    options.seed = options.seed || getRandomSeed();
+    const { clientId, text, aspectRatio, keyPhrases, seed } = options;
     let workflow: Workflow;
     switch (options.workflow) {
         case 'realistic':
-            workflow = new RealisticWorkflow(clientId, prompt, { aspectRatio, keyPhrases, seed });
+            workflow = new RealisticWorkflow(clientId, text, { aspectRatio, keyPhrases, seed });
             break;
         case 'fantasy':
-            workflow = new FantasyWorkflow(clientId, prompt, { aspectRatio, keyPhrases, seed });
+            workflow = new FantasyWorkflow(clientId, text, { aspectRatio, keyPhrases, seed });
             break;
         case 'anime':
-            workflow = new AnimeWorkflow(clientId, prompt, { aspectRatio, keyPhrases, seed });
+            workflow = new AnimeWorkflow(clientId, text, { aspectRatio, keyPhrases, seed });
             break;
         default:
-            workflow = new RealisticWorkflow(clientId, prompt, { aspectRatio, keyPhrases, seed });
+            workflow = new RealisticWorkflow(clientId, text, { aspectRatio, keyPhrases, seed });
             break;
     }
     void await workflow.startExecution();

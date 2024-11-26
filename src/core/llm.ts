@@ -7,18 +7,18 @@ import { JsonOutputParser, StringOutputParser } from '@langchain/core/output_par
 import { AspectRatio, Workflows } from './workflows';
 
 interface OptimisedPromptOptions {
-    detailPrompt?: boolean;
+    detailText?: boolean;
 }
 
 interface OptimisedPrompt {
-    prompt: string;
-    detailedPrompt: string | null;
+    text: string;
+    detailedText: string | null;
     workflow: Workflows | null;
     aspectRatio: AspectRatio | null;
     keyPhrases: string[] | null;
 }
 
-export async function optimisePrompt(prompt: string, options?: OptimisedPromptOptions): Promise<OptimisedPrompt> {
+export async function optimisePrompt(text: string, options?: OptimisedPromptOptions): Promise<OptimisedPrompt> {
     const llm = new ChatOpenAI(
         {
             apiKey: getRequiredEnvVar('AKASHCHAT_KEY'),
@@ -52,14 +52,14 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
 			Examples:
 			${promptExamples.join('\n')}`,
         ),
-        new HumanMessage(prompt),
+        new HumanMessage(text),
     ];
     
-    let detailedPrompt = prompt;
-    if (options?.detailPrompt) {
+    let detailedText = text;
+    if (options?.detailText) {
         const result = await llm.invoke(messages);
         const parser = new StringOutputParser();
-        detailedPrompt = await parser.invoke(result);
+        detailedText = await parser.invoke(result);
     }
     
     const template = ChatPromptTemplate.fromMessages([
@@ -103,7 +103,7 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
     });
     const pipeline = template.pipe(structuredLlm);
     
-    const pipeResult = await pipeline.invoke({ input: detailedPrompt }).catch(() => null);
+    const pipeResult = await pipeline.invoke({ input: detailedText }).catch(() => null);
     const raw = pipeResult?.raw.content.toString();
     let parsed: z.infer<typeof parsingSchema> | undefined = pipeResult?.parsed;
     if (!parsed && raw) {
@@ -133,11 +133,11 @@ export async function optimisePrompt(prompt: string, options?: OptimisedPromptOp
     }
     
     if (!parsed) {
-        return { prompt, detailedPrompt: null, workflow: null, aspectRatio: null, keyPhrases: null };
+        return { text, detailedText: null, workflow: null, aspectRatio: null, keyPhrases: null };
     } else {
         return {
-            prompt,
-            detailedPrompt,
+            text,
+            detailedText,
             ...parsed,
         };
     }
