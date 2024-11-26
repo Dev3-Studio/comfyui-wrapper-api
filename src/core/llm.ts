@@ -109,8 +109,6 @@ async function inferSettingsFromPromptText(text: string): Promise<{ workflow: Wo
 }
 
 export async function optimisePrompt(prompt: PromptCreate): Promise<OptimisedPrompt> {
-    const llm = getLlm();
-    
     const detailedText = prompt.detailText ? await detailPromptText(prompt.text).catch(() => prompt.text) : undefined;
     
     const settings = await inferSettingsFromPromptText(detailedText || prompt.text).catch(() => undefined);
