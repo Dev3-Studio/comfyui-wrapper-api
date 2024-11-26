@@ -6,31 +6,34 @@ const promptJobs = new Map<string, Workflow>();
 interface QueuePromptJobOptions {
     clientId: string;
     text: string;
+    enhancedText?: string;
     workflow: Workflows;
-    layout?: Layout;
-    seed?: number;
+    layout: Layout;
+    seed: number;
 }
 
 export async function queuePromptJob(options: QueuePromptJobOptions) {
     options.seed = options.seed || getRandomSeed();
-    const { clientId, text, layout, seed } = options;
+    const { clientId, text, enhancedText, layout, seed } = options;
+    const promptText = enhancedText || text;
     let workflow: Workflow;
     switch (options.workflow) {
         case 'realistic':
-            workflow = new RealisticWorkflow(clientId, text, { layout, seed });
+            workflow = new RealisticWorkflow(clientId, promptText, { layout, seed });
             break;
         case 'fantasy':
-            workflow = new FantasyWorkflow(clientId, text, { layout, seed });
+            workflow = new FantasyWorkflow(clientId, promptText, { layout, seed });
             break;
         case 'anime':
-            workflow = new AnimeWorkflow(clientId, text, { layout, seed });
+            workflow = new AnimeWorkflow(clientId, promptText, { layout, seed });
             break;
         default:
-            workflow = new RealisticWorkflow(clientId, text, { layout, seed });
+            workflow = new RealisticWorkflow(clientId, promptText, { layout, seed });
             break;
     }
     void await workflow.startExecution();
-    const promptId = workflow.promptId!;
+    const promptId = workflow.promptId;
+    if (!promptId) throw new Error('Error while queueing prompt job - promptId is undefined');
     promptJobs.set(promptId, workflow);
     return workflow;
 }

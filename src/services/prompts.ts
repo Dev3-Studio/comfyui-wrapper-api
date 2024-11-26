@@ -3,24 +3,27 @@ import { Prompt, PromptCreate, PromptStatus } from '../lib/zodSchemas';
 import { optimisePrompt } from '../core/llm';
 import { getRandomSeed } from '../utils/getRandomSeed';
 import { Layout, Workflows } from '../core/workflows';
-import { getUuidV4 } from '../utils/getUuidV4';
 
 export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
-    const { text, workflowOverride, layoutOverride, seedOverride } = prompt;
-    const optimisedPrompt = await optimisePrompt(prompt);
-    const workflow = workflowOverride || optimisedPrompt.workflow || Workflows.Realistic;
-    const enhancedText = optimisedPrompt.enhancedText;
-    const layout = layoutOverride || optimisedPrompt.layout || undefined;
+    const { text, clientId, workflowOverride, layoutOverride, seedOverride } = prompt;
+    const { workflow: optimisedWorkflow, enhancedText, layout: optimisedLayout } = await optimisePrompt(prompt);
+    
+    const workflow = workflowOverride || optimisedWorkflow || Workflows.Realistic;
+    const layout = layoutOverride || optimisedLayout || Layout.Square;
     const seed = seedOverride || getRandomSeed();
+    
     const job = await queuePromptJob({
+        clientId,
         workflow,
-        text: enhancedText || text,
+        text,
+        enhancedText,
         layout,
         seed,
-        clientId: getUuidV4(),
     });
+    
     return {
-        id: job.promptId!,
+        clientId,
+        promptId: job.promptId!,
         layout: layout || Layout.Square,
         text: prompt.text,
         enhancedText: enhancedText,
@@ -29,8 +32,8 @@ export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
     };
 }
 
-export async function getPromptStatus(id: string): Promise<PromptStatus> {
-    const prompt = getPromptJob(id);
+export async function getPromptStatus(promptId: string): Promise<PromptStatus> {
+    const prompt = getPromptJob(promptId);
     if (!prompt) {
         throw new Error('NOT_FOUND');
     }
@@ -40,15 +43,15 @@ export async function getPromptStatus(id: string): Promise<PromptStatus> {
         throw new Error('NOT_FOUND');
     }
     return {
-        id,
+        promptId,
         progress: progress.value,
         status: progress.value === 1 ? 'completed' : 'pending',
         statusMessage: progress.status,
     };
 }
 
-export async function getPromptResult(id: string): Promise<Buffer> {
-    const prompt = getPromptJob(id);
+export async function getPromptResult(promptId: string): Promise<Buffer> {
+    const prompt = getPromptJob(promptId);
     if (!prompt) {
         throw new Error('NOT_FOUND');
     }
