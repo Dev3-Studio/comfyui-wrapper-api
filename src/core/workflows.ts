@@ -146,7 +146,7 @@ export enum Scheduler {
     Karras = 'karras'
 }
 
-export enum AspectRatio {
+export enum Layout {
     Portrait = 'portrait',
     Landscape = 'landscape',
     Square = 'square',
@@ -171,7 +171,7 @@ export class SDXLBasicWorkflow extends Workflow {
         cfg: number,
         samplerName: SamplerName,
         scheduler: Scheduler,
-        aspectRatio?: AspectRatio,
+        layout?: Layout,
     ) {
         sdxlWorkflow['CheckpointLoaderSimple'].inputs.ckpt_name = checkpoint + '.safetensors';
         
@@ -203,7 +203,7 @@ export class SDXLBasicWorkflow extends Workflow {
         };
         sdxlWorkflow['EmptyLatentImage'].inputs = {
             ...sdxlWorkflow['EmptyLatentImage'].inputs,
-            ...DIMENSIONS[aspectRatio ?? AspectRatio.Square],
+            ...DIMENSIONS[layout ?? Layout.Square],
         };
         
         super(clientId, sdxlWorkflow);
@@ -249,7 +249,7 @@ export class SDXLBasicWorkflow extends Workflow {
 export class AnimeWorkflow extends SDXLBasicWorkflow {
     constructor(clientId: string, prompt: string, options?: {
         seed?: number;
-        aspectRatio?: AspectRatio,
+        layout?: Layout,
     }) {
         const positivePromptKeywords = ['score_9', 'score_8_up', 'score_7_up', 'source_anime'];
         const negativePromptKeywords = ['worst quality', 'bad quality', 'jpeg artifacts', 'source_cartoon', '3d', '(censor)', 'monochrome', 'blurry', 'lowres', 'watermark'];
@@ -265,7 +265,7 @@ export class AnimeWorkflow extends SDXLBasicWorkflow {
             7,
             SamplerName.Dpmpp2m,
             Scheduler.Karras,
-            options?.aspectRatio,
+            options?.layout,
         );
     }
 }
@@ -273,7 +273,7 @@ export class AnimeWorkflow extends SDXLBasicWorkflow {
 export class RealisticWorkflow extends SDXLBasicWorkflow {
     constructor(clientId: string, prompt: string, options?: {
         seed?: number;
-        aspectRatio?: AspectRatio,
+        layout?: Layout,
     }) {
         const positivePromptKeywords = ['High Resolution'];
         const negativePromptKeywords = ['fake eyes', 'bad hands', 'deformed eyes', 'bad eyes', 'cgi', '3D', 'digital', 'airbrushed'];
@@ -289,7 +289,7 @@ export class RealisticWorkflow extends SDXLBasicWorkflow {
             4.5,
             SamplerName.Dpmpp2m,
             Scheduler.Karras,
-            options?.aspectRatio,
+            options?.layout,
         );
     }
 }
@@ -297,7 +297,7 @@ export class RealisticWorkflow extends SDXLBasicWorkflow {
 export class FantasyWorkflow extends SDXLBasicWorkflow {
     constructor(clientId: string, prompt: string, options?: {
         seed?: number;
-        aspectRatio?: AspectRatio,
+        layout?: Layout,
     }) {
         super(
             clientId,
@@ -309,7 +309,7 @@ export class FantasyWorkflow extends SDXLBasicWorkflow {
             2,
             SamplerName.DpmppSde,
             Scheduler.Karras,
-            options?.aspectRatio,
+            options?.layout,
         );
     }
 }

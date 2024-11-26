@@ -1,20 +1,20 @@
 import { z } from 'zod';
-import { AspectRatio, Workflows } from '../core/workflows';
+import { Layout, Workflows } from '../core/workflows';
 
 export const zPrompt = z.object({
     id: z.string().uuid(),
     text: z.string(),
-    detailedText: z.string().optional(),
+    enhancedText: z.string().optional(),
     workflow: z.nativeEnum(Workflows),
-    aspectRatio: z.nativeEnum(AspectRatio),
+    layout: z.nativeEnum(Layout),
     seed: z.number().int(),
 });
 
 export const zPromptCreate = z.object({
     text: z.string(),
-    detailText: z.boolean().optional(),
+    enhanceText: z.boolean().optional(),
     workflowOverride: z.nativeEnum(Workflows).optional(),
-    aspectRatioOverride: z.nativeEnum(AspectRatio).optional(),
+    layoutOverride: z.nativeEnum(Layout).optional(),
     seedOverride: z.number().int().optional(),
 });
 

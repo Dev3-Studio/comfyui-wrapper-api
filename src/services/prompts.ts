@@ -2,28 +2,28 @@ import { getPromptJob, queuePromptJob } from '../jobs/prompts';
 import { Prompt, PromptCreate, PromptStatus } from '../lib/zodSchemas';
 import { optimisePrompt } from '../core/llm';
 import { getRandomSeed } from '../utils/getRandomSeed';
-import { AspectRatio, Workflows } from '../core/workflows';
+import { Layout, Workflows } from '../core/workflows';
 import { getUuidV4 } from '../utils/getUuidV4';
 
 export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
-    const { text, detailText, workflowOverride, aspectRatioOverride, seedOverride } = prompt;
+    const { text, workflowOverride, layoutOverride, seedOverride } = prompt;
     const optimisedPrompt = await optimisePrompt(prompt);
     const workflow = workflowOverride || optimisedPrompt.workflow || Workflows.Realistic;
-    const detailedText = optimisedPrompt.detailedText;
-    const aspectRatio = aspectRatioOverride || optimisedPrompt.aspectRatio || undefined;
+    const enhancedText = optimisedPrompt.enhancedText;
+    const layout = layoutOverride || optimisedPrompt.layout || undefined;
     const seed = seedOverride || getRandomSeed();
     const job = await queuePromptJob({
         workflow,
-        text: detailedText || text,
-        aspectRatio,
+        text: enhancedText || text,
+        layout,
         seed,
         clientId: getUuidV4(),
     });
     return {
         id: job.promptId!,
-        aspectRatio: aspectRatio || AspectRatio.Square,
+        layout: layout || Layout.Square,
         text: prompt.text,
-        detailedText: detailedText || undefined,
+        enhancedText: enhancedText,
         seed,
         workflow,
     };

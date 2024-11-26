@@ -4,14 +4,7 @@
     "toolCallName": "preprocessor",
     "toolCallOutput": {
       "workflow": "realistic",
-      "aspectRatio": "portrait",
-      "keyPhrases": [
-        "stylistic",
-        "3D render",
-        "cute tiny robot",
-        "sitting with a puppy on a couch",
-        "colorful sticky notes"
-      ]
+      "layout": "portrait"
     }
   },
   {
@@ -19,13 +12,7 @@
     "toolCallName": "preprocessor",
     "toolCallOutput": {
       "workflow": "fantasy",
-      "aspectRatio": "landscape",
-      "keyPhrases": [
-        "alien landscape",
-        "pink sky",
-        "green moon",
-        "futuristic city"
-      ]
+      "layout": "landscape"
     }
   },
   {
@@ -33,24 +20,7 @@
     "toolCallName": "preprocessor",
     "toolCallOutput": {
       "workflow": "realistic",
-      "aspectRatio": "landscape",
-      "keyPhrases": [
-        "stunning sunset",
-        "vibrant hues",
-        "orange",
-        "pink",
-        "purple",
-        "sky",
-        "mirror-like surface",
-        "calm lake",
-        "small boat",
-        "silhouetted",
-        "warm glow",
-        "serene scene",
-        "soft",
-        "painterly textures",
-        "gentle lighting"
-      ]
+      "layout": "landscape"
     }
   }
 ]

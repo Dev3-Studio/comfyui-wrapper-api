@@ -4,19 +4,19 @@ import { ChatOpenAI } from '@langchain/openai';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
 import { AIMessage, type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { StringOutputParser } from '@langchain/core/output_parsers';
-import { AspectRatio, Workflows } from './workflows';
+import { Layout, Workflows } from './workflows';
 import { PromptCreate } from '../lib/zodSchemas';
 import { getUuidV4 } from '../utils/getUuidV4';
-import detailTextExamples from '../static/llm/detailText/examples.json';
+import enhanceTextExamples from '../static/llm/enhanceText/examples.json';
 import imagePreProcessExamples from '../static/llm/imagePreProcess/examples.json';
 import fs from 'fs';
 import path from 'path';
 
 interface OptimisedPrompt {
     text: string;
-    detailedText?: string;
+    enhancedText?: string;
     workflow?: Workflows;
-    aspectRatio?: AspectRatio;
+    layout?: Layout;
     seed?: number;
 }
 
@@ -70,12 +70,12 @@ function getLlm(model?: LlmModel): ChatOpenAI {
     );
 }
 
-async function detailPromptText(text: string): Promise<string> {
+async function enhancePromptText(text: string): Promise<string> {
     const llm = getLlm('Meta-Llama-3-1-405B-Instruct-FP8');
-    const systemPrompt = fs.readFileSync(path.join(__dirname, '../static/llm/detailText/system.txt')).toString();
+    const systemPrompt = fs.readFileSync(path.join(__dirname, '../static/llm/enhanceText/system.txt')).toString();
     const messages = [
         new SystemMessage(systemPrompt),
-        ...detailTextExamples.flatMap(({ input, output }) => [
+        ...enhanceTextExamples.flatMap(({ input, output }) => [
             new HumanMessage(input),
             new AIMessage(output),
         ]),
@@ -86,7 +86,7 @@ async function detailPromptText(text: string): Promise<string> {
     return await parser.invoke(result);
 }
 
-async function inferSettingsFromPromptText(text: string): Promise<{ workflow: Workflows, aspectRatio: AspectRatio }> {
+async function inferSettingsFromPromptText(text: string): Promise<{ workflow: Workflows, layout: Layout }> {
     const systemPrompt = fs.readFileSync(path.join(__dirname, '../static/llm/imagePreProcess/system.txt')).toString();
     const chatPromptTemplate = ChatPromptTemplate.fromMessages([
         ['system', systemPrompt],
@@ -98,7 +98,7 @@ async function inferSettingsFromPromptText(text: string): Promise<{ workflow: Wo
     
     const settingsSchema = z.object({
         workflow: z.nativeEnum(Workflows).describe('The workflow to utilise when generating the image'),
-        aspectRatio: z.nativeEnum(AspectRatio).describe('The aspect ratio of the image'),
+        layout: z.nativeEnum(Layout).describe('The layout of the image'),
     });
     
     const llm = getLlm();
@@ -109,15 +109,15 @@ async function inferSettingsFromPromptText(text: string): Promise<{ workflow: Wo
 }
 
 export async function optimisePrompt(prompt: PromptCreate): Promise<OptimisedPrompt> {
-    const detailedText = prompt.detailText ? await detailPromptText(prompt.text).catch(() => prompt.text) : undefined;
+    const enhancedText = prompt.enhanceText ? await enhancePromptText(prompt.text).catch(() => prompt.text) : undefined;
     
-    const settings = await inferSettingsFromPromptText(detailedText || prompt.text).catch(() => undefined);
+    const settings = await inferSettingsFromPromptText(enhancedText || prompt.text).catch(() => undefined);
     
     return {
         text: prompt.text,
-        detailedText,
+        enhancedText,
         workflow: settings?.workflow,
-        aspectRatio: settings?.aspectRatio,
+        layout: settings?.layout,
         seed: prompt.seedOverride,
     };
 }
