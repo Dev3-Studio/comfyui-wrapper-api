@@ -7,7 +7,6 @@ import * as services from '../services/prompts';
 export async function postPrompt(req: Request, res: Response) {
     const { body } = req;
     
-    
     const parse = zPromptCreate.safeParse(body);
     if (!parse.success) {
         const error = fromError(parse.error);

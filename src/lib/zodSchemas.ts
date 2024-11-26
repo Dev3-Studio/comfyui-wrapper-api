@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { Layout, Workflows } from '../core/workflows';
 
 export const zPrompt = z.object({
-    id: z.string().uuid(),
+    clientId: z.string().uuid(),
+    promptId: z.string().uuid(),
     text: z.string(),
     enhancedText: z.string().optional(),
     workflow: z.nativeEnum(Workflows),
@@ -11,6 +12,7 @@ export const zPrompt = z.object({
 });
 
 export const zPromptCreate = z.object({
+    clientId: z.string().uuid(),
     text: z.string(),
     enhanceText: z.boolean().optional(),
     workflowOverride: z.nativeEnum(Workflows).optional(),
@@ -19,14 +21,14 @@ export const zPromptCreate = z.object({
 });
 
 export const zPromptStatus = z.object({
-    id: z.string().uuid(),
+    promptId: z.string().uuid(),
     status: z.enum(['pending', 'completed']),
     statusMessage: z.string(),
     progress: z.number().int().min(0).max(1),
 });
 
 export const zPromptResult = z.object({
-    id: z.string().uuid(),
+    promptId: z.string().uuid(),
     text: z.string(),
     result: z.instanceof(Buffer),
 });
