@@ -36,8 +36,5 @@
     "ws": "^8.18.0",
     "zod": "^3.23.8",
     "zod-validation-error": "^3.4.0"
-  },
-  "overrides": {
-    "@langchain/core": "^0.3.18"
   }
 }
