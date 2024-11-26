@@ -1,33 +1,40 @@
-import { Task, TaskStatus } from '../lib/interface';
-import { getJob, queuePrompt } from '../jobs';
-import { TaskCreate } from '../lib/zodSchemas';
-import { optimisePrompt as _optimisePrompt } from '../core/llm';
+import { getPromptJob, queuePromptJob } from '../jobs';
+import { Task, TaskCreate, TaskStatus } from '../lib/zodSchemas';
+import { optimisePrompt } from '../core/llm';
+import { getRandomSeed } from '../utils/getRandomSeed';
+import { AspectRatio, Workflows } from '../core/workflows';
+import { getUuidV4 } from '../utils/getUuidV4';
 
 export async function createTask(task: TaskCreate): Promise<Task> {
-    if (!task.options) {
-        const taskId = await queuePrompt(task.prompt);
-        return {
-            id: taskId,
-            prompt: task.prompt,
-        };
-    }
-    const options = task.options;
-    let prompt = task.prompt;
-    
-    if (options.optimisePrompt) prompt = await optimisePrompt(prompt);
-    
-    // todo add other options
-    
-    
-    const taskId = await queuePrompt(prompt);
+    const { prompt, detailPrompt, workflowOverride, aspectRatioOverride, seedOverride } = task;
+    const optimisedPrompt = await optimisePrompt(prompt, {
+        detailPrompt,
+    });
+    const workflow = workflowOverride || optimisedPrompt.workflow || Workflows.Realistic;
+    const detailedPrompt = optimisedPrompt.detailedPrompt;
+    const aspectRatio = aspectRatioOverride || optimisedPrompt.aspectRatio || undefined;
+    const keyPhrases = optimisedPrompt.keyPhrases ?? undefined;
+    const seed = seedOverride || getRandomSeed();
+    const job = await queuePromptJob({
+        workflow,
+        prompt: detailedPrompt || prompt,
+        aspectRatio,
+        seed,
+        keyPhrases: keyPhrases,
+        clientId: getUuidV4(),
+    });
     return {
-        id: taskId,
-        prompt,
+        id: job.promptId!,
+        aspectRatio: aspectRatio || AspectRatio.Square,
+        prompt: detailedPrompt || prompt,
+        detailedPrompt: detailedPrompt || undefined,
+        seed,
+        workflow,
     };
 }
 
 export async function getTaskStatus(id: string): Promise<TaskStatus> {
-    const task = getJob(id);
+    const task = getPromptJob(id);
     if (!task) {
         throw new Error('NOT_FOUND');
     }
@@ -45,7 +52,7 @@ export async function getTaskStatus(id: string): Promise<TaskStatus> {
 }
 
 export async function getTaskResult(id: string): Promise<Buffer> {
-    const task = getJob(id);
+    const task = getPromptJob(id);
     if (!task) {
         throw new Error('NOT_FOUND');
     }
