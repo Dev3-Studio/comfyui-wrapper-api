@@ -31,7 +31,7 @@ export async function queuePrompt(options: QueuePromptOptions) {
             break;
     }
     void await workflow.startExecution();
-    const promptId = workflow.getPromptId()!;
+    const promptId = workflow.promptId!;
     promptJobs.set(promptId, workflow);
     return promptId;
 }

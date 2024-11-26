@@ -19,18 +19,19 @@ interface Message {
 }
 
 export class Workflow {
-    private readonly clientId: string;
+    readonly clientId: string;
+    
     private httpUrl: URL;
     private wsUrl: URL;
     private ws: WebSocket;
-    private progress?: Progress;
+    private _promptId?: string;
+    private _progress?: Progress;
     
-    protected json: any; // Workflow in API format
-    protected promptId?: string;
+    protected workflowJson: object; // Workflow in API format
     
-    constructor(clientId: string, json: any) {
+    constructor(clientId: string, workflowJson: object) {
         this.clientId = clientId;
-        this.json = json;
+        this.workflowJson = workflowJson;
         
         this.httpUrl = new URL(`http://${comfyUiHost}:${comfyUiPort}`);
         this.wsUrl = new URL(`ws://${comfyUiHost}:${comfyUiPort}/ws?clientId=${this.clientId}`);
@@ -38,12 +39,20 @@ export class Workflow {
         this.ws = new WebSocket(this.wsUrl.toString());
     }
     
-    getPromptId() {
-        return this.promptId;
+    get promptId(): string | undefined {
+        return this._promptId;
     }
     
-    getProgress() {
-        return this.progress;
+    protected set promptId(value: string | undefined) {
+        this._promptId = value;
+    }
+    
+    get progress() {
+        return this._progress;
+    }
+    
+    protected set progress(value: Progress | undefined) {
+        this._progress = value;
     }
     
     async getResult(): Promise<Buffer> {
@@ -78,7 +87,7 @@ export class Workflow {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                prompt: this.json,
+                prompt: this.workflowJson,
                 client_id: this.clientId,
             }),
         });

@@ -31,10 +31,9 @@ export async function getTaskStatus(id: string): Promise<TaskStatus> {
     if (!task) {
         throw new Error('NOT_FOUND');
     }
-    const promptId = task.getPromptId();
-    const progress = task.getProgress();
+    const progress = task.progress;
     
-    if (!promptId || !progress) {
+    if (!task.promptId || !progress) {
         throw new Error('NOT_FOUND');
     }
     return {
@@ -50,7 +49,7 @@ export async function getTaskResult(id: string): Promise<Buffer> {
     if (!task) {
         throw new Error('NOT_FOUND');
     }
-    const progress = task.getProgress();
+    const progress = task.progress;
     if (progress && progress.value !== 1) {
         throw new Error('NOT_COMPLETED');
     }
