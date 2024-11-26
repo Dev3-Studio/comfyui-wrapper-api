@@ -100,7 +100,7 @@ export class Workflow {
         if (value < 0 || value > 1) {
             throw new Error('Progress value must be between 0 and 1');
         }
-        console.log(`Progress: ${(value * 100).toFixed(2)}% - ${status}`);
+        
         this.progress = { status, value, error };
     }
     
