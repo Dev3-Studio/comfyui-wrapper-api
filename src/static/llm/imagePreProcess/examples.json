@@ -1,0 +1,56 @@
+[
+  {
+    "input": "Stylistic, 3D render of a cute tiny robot sitting with a puppy on a couch, surrounded by colorful sticky notes. No people or cats.",
+    "toolCallName": "preprocessor",
+    "toolCallOutput": {
+      "workflow": "realistic",
+      "aspectRatio": "portrait",
+      "keyPhrases": [
+        "stylistic",
+        "3D render",
+        "cute tiny robot",
+        "sitting with a puppy on a couch",
+        "colorful sticky notes"
+      ]
+    }
+  },
+  {
+    "input": "Alien landscape with a pink sky and a green moon, featuring a futuristic city in the background. No humans or animals.",
+    "toolCallName": "preprocessor",
+    "toolCallOutput": {
+      "workflow": "fantasy",
+      "aspectRatio": "landscape",
+      "keyPhrases": [
+        "alien landscape",
+        "pink sky",
+        "green moon",
+        "futuristic city"
+      ]
+    }
+  },
+  {
+    "input": "A stunning sunset casts vibrant hues of orange, pink, and purple across the sky, reflected on the mirror-like surface of a calm lake; a small boat drifts peacefully in the distance, silhouetted against the warm glow. The serene scene is framed with soft, painterly textures and gentle lighting.",
+    "toolCallName": "preprocessor",
+    "toolCallOutput": {
+      "workflow": "realistic",
+      "aspectRatio": "landscape",
+      "keyPhrases": [
+        "stunning sunset",
+        "vibrant hues",
+        "orange",
+        "pink",
+        "purple",
+        "sky",
+        "mirror-like surface",
+        "calm lake",
+        "small boat",
+        "silhouetted",
+        "warm glow",
+        "serene scene",
+        "soft",
+        "painterly textures",
+        "gentle lighting"
+      ]
+    }
+  }
+]

@@ -7,9 +7,7 @@ import { getUuidV4 } from '../utils/getUuidV4';
 
 export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
     const { text, detailText, workflowOverride, aspectRatioOverride, seedOverride } = prompt;
-    const optimisedPrompt = await optimisePrompt(text, {
-        detailText,
-    });
+    const optimisedPrompt = await optimisePrompt(prompt);
     const workflow = workflowOverride || optimisedPrompt.workflow || Workflows.Realistic;
     const detailedText = optimisedPrompt.detailedText;
     const aspectRatio = aspectRatioOverride || optimisedPrompt.aspectRatio || undefined;
@@ -24,7 +22,7 @@ export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
     return {
         id: job.promptId!,
         aspectRatio: aspectRatio || AspectRatio.Square,
-        text: detailedText || prompt.text,
+        text: prompt.text,
         detailedText: detailedText || undefined,
         seed,
         workflow,

@@ -1,0 +1,22 @@
+[
+  {
+    "input": "Black and white coloring book page of a smiling apple with a smiling worm sticking out of it on top of a stack of textbooks, with Back to School! hand-written on the page 1960s style, line art",
+    "output": "Black and white coloring book page, hand-drawn outline doodle of a smiling apple with a smiling worm sticking out of it on top of a stack of textbooks, overlay says Back to School! in a 1960s hand-written print, simple rough 1960s cartoon black-and-white pen and ink line art"
+  },
+  {
+    "input": "A beautiful woman in a field of sunflowers",
+    "output": "A beautiful woman with flowing hair stands gracefully in a vibrant sunflower field, golden petals contrasting lush green stems under a soft blue sky, warm golden-hour lighting, realism, waist-up composition, shallow depth of field"
+  },
+  {
+    "input": "An astronaut walking on a surreal planet with colorful balloons floating in the background. There are swirling textures and vibrant colors.",
+    "output": "An astronaut walks on a surreal alien planet in an expressionist style, with swirling textures and vibrant colors, colorful balloons float behind them, backdrop of a star-filled sky, soft starlight casts gentle highlights, dreamy atmosphere"
+  },
+  {
+    "input": "A 1950s diner with neon signs glowing outside and people enjoying milkshakes at the counter",
+    "output": "A 1950s diner with a retro facade illuminated by vibrant neon signs, the warm glow reflecting on chrome details, people sit at a classic counter on red swivel stools enjoying milkshakes, soft ambient lighting, nostalgic, lively atmosphere, cinematic wide-angle view"
+  },
+  {
+    "input": "A New York City office building in a modern comic book style",
+    "output": "A towering New York City office building, sleek glass windows reflect the bustling cityscape below, bright blue sky with scattered clouds, illustrated in bold, modern comic book style with dynamic linework and vibrant flat colors, dramatic perspective, low-angle view"
+  }
+]

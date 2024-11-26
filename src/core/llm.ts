@@ -1,144 +1,125 @@
-import { ChatPromptTemplate } from '@langchain/core/prompts';
+import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts';
 import { z } from 'zod';
 import { ChatOpenAI } from '@langchain/openai';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { JsonOutputParser, StringOutputParser } from '@langchain/core/output_parsers';
+import { AIMessage, type BaseMessage, HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { StringOutputParser } from '@langchain/core/output_parsers';
 import { AspectRatio, Workflows } from './workflows';
-
-interface OptimisedPromptOptions {
-    detailText?: boolean;
-}
+import { PromptCreate } from '../lib/zodSchemas';
+import { getUuidV4 } from '../utils/getUuidV4';
+import detailTextExamples from '../static/llm/detailText/examples.json';
+import imagePreProcessExamples from '../static/llm/imagePreProcess/examples.json';
+import fs from 'fs';
+import path from 'path';
 
 interface OptimisedPrompt {
     text: string;
-    detailedText: string | null;
-    workflow: Workflows | null;
-    aspectRatio: AspectRatio | null;
-    keyPhrases: string[] | null;
+    detailedText?: string;
+    workflow?: Workflows;
+    aspectRatio?: AspectRatio;
+    seed?: number;
 }
 
-export async function optimisePrompt(text: string, options?: OptimisedPromptOptions): Promise<OptimisedPrompt> {
-    const llm = new ChatOpenAI(
+type ToolCallExample = {
+    input: string;
+    toolCallName: string;
+    toolCallOutput: Record<string, any>;
+};
+
+/**
+ * This function converts an example into a list of messages that can be fed into an LLM.
+ *
+ * This code serves as an adapter that transforms our example into a list of messages
+ * that can be processed by a chat model.
+ *
+ * The list of messages for each example includes:
+ *
+ * 1) HumanMessage: This contains the content from which information should be extracted.
+ * 2) AIMessage: This contains the information extracted by the model.
+ *
+ * Credit: https://js.langchain.com/docs/how_to/extraction_examples/
+ */
+function toolExampleToMessages(example: ToolCallExample): BaseMessage[] {
+    return [
+        new HumanMessage(example.input),
+        new AIMessage({
+            content: '',
+            tool_calls: [{
+                name: example.toolCallName,
+                type: 'tool_call',
+                id: getUuidV4(),
+                args: example.toolCallOutput,
+            }],
+        }),
+    ];
+}
+
+type LlmModel =
+    'Meta-Llama-3-1-8B-Instruct-FP8'
+    | 'Meta-Llama-3-1-405B-Instruct-FP8'
+    | 'Meta-Llama-3-2-3B-Instruct'
+    | 'nvidia-Llama-3-1-Nemotron-70B-Instruct-HF';
+
+function getLlm(model?: LlmModel): ChatOpenAI {
+    return new ChatOpenAI(
         {
             apiKey: getRequiredEnvVar('AKASHCHAT_KEY'),
-            model: 'Meta-Llama-3-1-405B-Instruct-FP8',
+            model: model || 'Meta-Llama-3-1-8B-Instruct-FP8',
         },
         { baseURL: 'https://chatapi.akash.network/api/v1' },
     );
-    const promptExamples = [
-        'Black and white coloring book page, simple rough 1960s cartoon black-and-white pen and ink line art, hand-drawn outline doodle of a smiling apple with a smiling worm sticking out of it on top of a stack of textbooks, overlay says Back to School! in a 1960s hand-written print.',
-        'Stylistic, 3D render of a cute tiny robot sitting with a puppy on a couch, surrounded by colorful sticky notes.',
-        'Expressionist painting of an astronaut walking on an alien planet with colorful balloons floating in the background. The scene is lit by soft lighting from the stars accentuating the presence of the astronaut in the vastness of space.',
-        'Watercolor painting of a nostalgic 1950s diner, with neon signs glowing outside and people enjoying milkshakes at the counter.',
-        'Simple illustration of a New York City office building in a modern comic book style. The colors should be rich and saturated with bright, energetic lighting and the background has interesting lines and textures.',
-        'Anime rendering of a quiet, rural train station during a rain shower, with reflections on the wet pavement. Umbrellas dot the scene as the rain creates ripples in nearby puddles, and a train waits in the background.',
-        'Wide view of a cute, isometric voxel cartoon 3D render of a vaporware apartment with a cat on a bed with starlight night view of the city from an open window in the background.',
-    ];
+}
+
+async function detailPromptText(text: string): Promise<string> {
+    const llm = getLlm('Meta-Llama-3-1-405B-Instruct-FP8');
+    const systemPrompt = fs.readFileSync(path.join(__dirname, '../static/llm/detailText/system.txt')).toString();
     const messages = [
-        new SystemMessage(
-            `You are an image generation prompting AI. Your job is to take a user prompt
-			and convert it into the following format. Be concise and descriptive, do not include unnecessary words in your description.
-			The format is:
-			Define the aesthetic direction, such as illustration style, painting medium, digital art style, or photography. Experiment and blend styles such as line art, watercolor, oil painting, surrealism, expressionism, and product photography.
-			If the image has a subject, the prompt should be written to amplify its presence first and any actions the subject takes afterward. Consider the images and prompts below.
-			Describe the desired composition and framing of the image by specifying close-up shots or wide-angle views.
-			Describe the lighting or shadows in the scene using terms like "backlight", "hard rim light", and "dynamic shadows"
-			Specify technical parameters using cinematic terms to guide the desired perspective and framing. Terms like “bird’s eye view,” “close-up,” “crane shot,” and “wide-angle shot” can help direct the composition effectively. Consider using terms like “fish-eye lens” for a curved look to achieve unique visual effects.
-			Everything should be described in a few sentences.
-			Do not use paragraphs or bullet points.
-			Do not include unnecessary words.
-			Do not make up details that are not in the original prompt.
-			Examples:
-			${promptExamples.join('\n')}`,
-        ),
+        new SystemMessage(systemPrompt),
+        ...detailTextExamples.flatMap(({ input, output }) => [
+            new HumanMessage(input),
+            new AIMessage(output),
+        ]),
         new HumanMessage(text),
     ];
-    
-    let detailedText = text;
-    if (options?.detailText) {
-        const result = await llm.invoke(messages);
-        const parser = new StringOutputParser();
-        detailedText = await parser.invoke(result);
-    }
-    
-    const template = ChatPromptTemplate.fromMessages([
-        [
-            'system',
-            `You are a text-to-image pre-processor. Your job is to take a user prompt and convert it into a structured format. Always use your tool calling functionality.
-            Choose the most appropriate workflow for the image based on the user's description. The workflow can be 'realistic', 'fantasy', 'anime', 'pixel', or 'abstract'.
-            Choose the most appropriate aspect ratio for the image based on the user's description. The aspect ratio can be 'portrait', 'landscape', or 'square'.
-            Extract key phrases from the user's description that represent what we want to see in the image. This includes styles, colors, objects, mood, setting, and other relevant details.
-            Prompt: "Stylistic, 3D render of a cute tiny robot sitting with a puppy on a couch, surrounded by colorful sticky notes. No people or cats."
-            Output:
-                - Workflow: 'realistic'
-                - Aspect Ratio: 'portrait'
-                - Positive Key Phrases: ['stylistic' , '3D render', 'cute tiny robot', 'sitting with a puppy on a couch', 'colorful sticky notes']
-               
-            Prompt: "Alien landscape with a pink sky and a green moon, featuring a futuristic city in the background. No humans or animals."
-            Output:
-                - Workflow: 'fantasy'
-                - Aspect Ratio: 'landscape'
-                - Positive Key Phrases: ['alien landscape', 'pink sky', 'green moon', 'futuristic city']`,
-        ],
+    const result = await llm.invoke(messages);
+    const parser = new StringOutputParser();
+    return await parser.invoke(result);
+}
+
+async function inferSettingsFromPromptText(text: string): Promise<{ workflow: Workflows, aspectRatio: AspectRatio }> {
+    const systemPrompt = fs.readFileSync(path.join(__dirname, '../static/llm/imagePreProcess/system.txt')).toString();
+    const chatPromptTemplate = ChatPromptTemplate.fromMessages([
+        ['system', systemPrompt],
+        new MessagesPlaceholder('examples'),
         ['user', '{input}'],
     ]);
     
-    const parsingSchema = z.object({
-        workflow: z
-            .nativeEnum(Workflows)
-            .describe('The workflow to utilise when generating the image'),
-        aspectRatio: z
-            .nativeEnum(AspectRatio)
-            .describe('The aspect ratio of the image'),
-        keyPhrases: z
-            .string()
-            .array()
-            .describe('Positive phrases from the user input representing what we want to see in the image.'),
+    const examples = imagePreProcessExamples.flatMap(toolExampleToMessages);
+    
+    const settingsSchema = z.object({
+        workflow: z.nativeEnum(Workflows).describe('The workflow to utilise when generating the image'),
+        aspectRatio: z.nativeEnum(AspectRatio).describe('The aspect ratio of the image'),
     });
     
-    const structuredLlm = llm.withStructuredOutput(parsingSchema, {
-        includeRaw: true,
-        name: 'Text-to-Image Pre-Processor',
-    });
-    const pipeline = template.pipe(structuredLlm);
+    const llm = getLlm();
+    const structuredLlm = llm.withStructuredOutput(settingsSchema, { name: 'imagePreProcessor' });
     
-    const pipeResult = await pipeline.invoke({ input: detailedText }).catch(() => null);
-    const raw = pipeResult?.raw.content.toString();
-    let parsed: z.infer<typeof parsingSchema> | undefined = pipeResult?.parsed;
-    if (!parsed && raw) {
-        // Structured output failed, attempt to re-parse raw content
-        const parser = new JsonOutputParser<z.infer<typeof parsingSchema>>();
-        const contentParseTemplate = ChatPromptTemplate.fromMessages([
-            [
-                'system',
-                `You are a JSON parser.
-                Respond only in valid JSON.
-                The JSON object you return should match the following schema:
-                {{
-                    workflow: 'realistic' | 'fantasy' | 'anime';
-                    aspectRatio: 'portrait' | 'landscape' | 'square';
-                    keyPhrases: string[];
-                }}
-                `,
-            ],
-            ['user', '{input}'],
-        ]);
-        const contentParsePipeline = contentParseTemplate.pipe(llm).pipe(parser);
-        const contentParsePipeResult = await contentParsePipeline.invoke({ input: raw }).catch(console.error);
-        const parse = parsingSchema.safeParse(contentParsePipeResult);
-        if (parse.success) {
-            parsed = parse.data;
-        }
-    }
+    const pipeline = chatPromptTemplate.pipe(structuredLlm);
+    return await pipeline.invoke({ input: text, examples });
+}
+
+export async function optimisePrompt(prompt: PromptCreate): Promise<OptimisedPrompt> {
+    const llm = getLlm();
     
-    if (!parsed) {
-        return { text, detailedText: null, workflow: null, aspectRatio: null, keyPhrases: null };
-    } else {
-        return {
-            text,
-            detailedText,
-            ...parsed,
-        };
-    }
+    const detailedText = prompt.detailText ? await detailPromptText(prompt.text).catch(() => prompt.text) : undefined;
+    
+    const settings = await inferSettingsFromPromptText(detailedText || prompt.text).catch(() => undefined);
+    
+    return {
+        text: prompt.text,
+        detailedText,
+        workflow: settings?.workflow,
+        aspectRatio: settings?.aspectRatio,
+        seed: prompt.seedOverride,
+    };
 }
