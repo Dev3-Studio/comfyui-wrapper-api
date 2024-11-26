@@ -8,4 +8,5 @@ export default defineConfig({
     dbCredentials: {
         url: process.env.DB_FILE_NAME!,
     },
+    casing: 'snake_case',
 });
