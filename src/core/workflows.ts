@@ -247,12 +247,10 @@ export class AnimeWorkflow extends SDXLBasicWorkflow {
     constructor(clientId: string, prompt: string, options?: {
         seed?: number;
         aspectRatio?: AspectRatio,
-        keyPhrases?: string[]
     }) {
-        const keyPhrases = options?.keyPhrases ?? [];
         const positivePromptKeywords = ['score_9', 'score_8_up', 'score_7_up', 'source_anime'];
         const negativePromptKeywords = ['worst quality', 'bad quality', 'jpeg artifacts', 'source_cartoon', '3d', '(censor)', 'monochrome', 'blurry', 'lowres', 'watermark'];
-        const positivePrompt = keyPhrases.length > 0 ? [...positivePromptKeywords, ...keyPhrases].join(', ') : positivePromptKeywords.join(', ') + ', ' + prompt;
+        const positivePrompt = positivePromptKeywords.join(', ') + ', ' + prompt;
         const negativePrompt = negativePromptKeywords.join(', ');
         super(
             clientId,
@@ -273,12 +271,10 @@ export class RealisticWorkflow extends SDXLBasicWorkflow {
     constructor(clientId: string, prompt: string, options?: {
         seed?: number;
         aspectRatio?: AspectRatio,
-        keyPhrases?: string[]
     }) {
-        const keyPhrases = options?.keyPhrases ?? [];
         const positivePromptKeywords = ['High Resolution'];
         const negativePromptKeywords = ['fake eyes', 'bad hands', 'deformed eyes', 'bad eyes', 'cgi', '3D', 'digital', 'airbrushed'];
-        const positivePrompt = keyPhrases.length > 0 ? [...positivePromptKeywords, ...keyPhrases].join(', ') : positivePromptKeywords.join(', ') + ', ' + prompt;
+        const positivePrompt = positivePromptKeywords.join(', ') + ', ' + prompt;
         const negativePrompt = negativePromptKeywords.join(', ');
         super(
             clientId,
@@ -299,11 +295,10 @@ export class FantasyWorkflow extends SDXLBasicWorkflow {
     constructor(clientId: string, prompt: string, options?: {
         seed?: number;
         aspectRatio?: AspectRatio,
-        keyPhrases?: string[]
     }) {
         super(
             clientId,
-            options?.keyPhrases?.join(', ') ?? prompt,
+            prompt,
             '',
             Checkpoint.DreamshaperXL,
             options?.seed ?? getRandomSeed(),

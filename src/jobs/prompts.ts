@@ -8,26 +8,25 @@ interface QueuePromptJobOptions {
     text: string;
     workflow: Workflows;
     aspectRatio?: AspectRatio;
-    keyPhrases?: string[];
     seed?: number;
 }
 
 export async function queuePromptJob(options: QueuePromptJobOptions) {
     options.seed = options.seed || getRandomSeed();
-    const { clientId, text, aspectRatio, keyPhrases, seed } = options;
+    const { clientId, text, aspectRatio, seed } = options;
     let workflow: Workflow;
     switch (options.workflow) {
         case 'realistic':
-            workflow = new RealisticWorkflow(clientId, text, { aspectRatio, keyPhrases, seed });
+            workflow = new RealisticWorkflow(clientId, text, { aspectRatio, seed });
             break;
         case 'fantasy':
-            workflow = new FantasyWorkflow(clientId, text, { aspectRatio, keyPhrases, seed });
+            workflow = new FantasyWorkflow(clientId, text, { aspectRatio, seed });
             break;
         case 'anime':
-            workflow = new AnimeWorkflow(clientId, text, { aspectRatio, keyPhrases, seed });
+            workflow = new AnimeWorkflow(clientId, text, { aspectRatio, seed });
             break;
         default:
-            workflow = new RealisticWorkflow(clientId, text, { aspectRatio, keyPhrases, seed });
+            workflow = new RealisticWorkflow(clientId, text, { aspectRatio, seed });
             break;
     }
     void await workflow.startExecution();

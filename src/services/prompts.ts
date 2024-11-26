@@ -13,14 +13,12 @@ export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
     const workflow = workflowOverride || optimisedPrompt.workflow || Workflows.Realistic;
     const detailedText = optimisedPrompt.detailedText;
     const aspectRatio = aspectRatioOverride || optimisedPrompt.aspectRatio || undefined;
-    const keyPhrases = optimisedPrompt.keyPhrases ?? undefined;
     const seed = seedOverride || getRandomSeed();
     const job = await queuePromptJob({
         workflow,
         text: detailedText || text,
         aspectRatio,
         seed,
-        keyPhrases: keyPhrases,
         clientId: getUuidV4(),
     });
     return {
