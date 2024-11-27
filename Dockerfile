@@ -9,14 +9,13 @@ COPY package.json .
 COPY tsconfig.json .
 
 # Install Node.js dependencies
-RUN npm install --force --omit=dev
+RUN npm install
 
 # Run build
 RUN npm run build
 
-ENV PORT=3000
-ENV COMFY_UI_HOST=127.0.0.1
-ENV COMFY_UI_PORT=8188
+# Setup sqlite database
+RUN npx drizzle-kit push
 
 # Set the port
 EXPOSE $PORT
