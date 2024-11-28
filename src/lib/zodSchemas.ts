@@ -20,9 +20,11 @@ export const zPromptCreate = z.object({
     seedOverride: z.number().int().optional(),
 });
 
+export const zStatus = z.enum(['pending', 'completed', 'failed']);
+
 export const zPromptStatus = z.object({
     promptId: z.string().uuid(),
-    status: z.enum(['pending', 'completed']),
+    status: zStatus,
     statusMessage: z.string(),
     progress: z.number().int().min(0).max(1),
 });
@@ -35,5 +37,6 @@ export const zPromptResult = z.object({
 
 export type Prompt = z.infer<typeof zPrompt>;
 export type PromptCreate = z.infer<typeof zPromptCreate>;
+export type Status = z.infer<typeof zStatus>;
 export type PromptStatus = z.infer<typeof zPromptStatus>;
 export type PromptResult = z.infer<typeof zPromptResult>;

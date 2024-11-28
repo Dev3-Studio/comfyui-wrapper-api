@@ -12,9 +12,8 @@ export const promptsTable = sqliteTable('prompts', {
 
 export const resultsTable = sqliteTable('results', {
     promptId: text().primaryKey().references(() => promptsTable.id),
-    status: text({ enum: ['pending', 'completed'] }).default('pending').notNull(),
+    status: text({ enum: ['pending', 'completed', 'failed'] }).default('pending').notNull(),
     statusMessage: text().default('In queue').notNull(),
     progress: real().default(0).notNull(),
-    error: text(),
     s3Key: text(),
 });

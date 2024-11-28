@@ -3,14 +3,15 @@ import WebSocket from 'ws';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
 import { z } from 'zod';
 import { getRandomSeed } from '../utils/getRandomSeed';
+import { Status } from '../lib/zodSchemas';
 
 const comfyUiHost = getRequiredEnvVar('COMFY_UI_HOST');
 const comfyUiPort = getRequiredEnvVar('COMFY_UI_PORT');
 
 interface Progress {
     value: number; // 0-1
-    status: string;
-    error?: string;
+    status: Status;
+    statusMessage?: string;
 }
 
 interface Message {
@@ -78,7 +79,7 @@ export class Workflow {
         
         this.ws.on('error', () => {
             this.ws.close();
-            this.setProgress('Failed', 0, 'Connection terminated');
+            this.setProgress('failed', 'ComfyUI websocket closed unexpectedly', 0);
         });
         
         const res = await fetch(this.httpUrl.toString() + 'prompt', {
@@ -96,12 +97,12 @@ export class Workflow {
         this.promptId = data.prompt_id;
     }
     
-    protected setProgress(status: string, value: number, error?: string) {
+    protected setProgress(status: Status, statusMessage: string, value: number) {
         if (value < 0 || value > 1) {
             throw new Error('Progress value must be between 0 and 1');
         }
         
-        this.progress = { status, value, error };
+        this.progress = { status, statusMessage, value };
     }
     
     protected handleMessage(message: Message) {
@@ -109,10 +110,10 @@ export class Workflow {
         if (data.prompt_id !== this.promptId) return;
         switch (message.type) {
             case 'execution_start':
-                this.setProgress('Starting', 0);
+                this.setProgress('pending', 'Starting', 0);
                 break;
             case 'execution_success':
-                this.setProgress('Completed', 1);
+                this.setProgress('completed', 'Completed', 1);
                 break;
         }
     }
@@ -214,10 +215,10 @@ export class SDXLBasicWorkflow extends Workflow {
         console.log(message);
         switch (message.type) {
             case 'execution_start':
-                this.setProgress('Starting', 0 / this.INFERENCE_STEPS);
+                this.setProgress('pending', 'Starting', 0 / this.INFERENCE_STEPS);
                 break;
             case 'execution_success':
-                this.setProgress('Completed', 1);
+                this.setProgress('completed', 'Completed', 1);
                 break;
             default:
                 break;
@@ -226,13 +227,13 @@ export class SDXLBasicWorkflow extends Workflow {
             const { node } = message.data as { node: string };
             switch (node) {
                 case 'CheckpointLoaderSimple':
-                    this.setProgress('Loading checkpoint', 1 / this.INFERENCE_STEPS);
+                    this.setProgress('pending', 'Loading checkpoint', 1 / this.INFERENCE_STEPS);
                     break;
                 case 'VAEDecode':
-                    this.setProgress('VAE decoding', 32 / this.INFERENCE_STEPS);
+                    this.setProgress('pending', 'VAE decoding', 32 / this.INFERENCE_STEPS);
                     break;
                 case 'SaveImage':
-                    this.setProgress('Saving image', 53 / this.INFERENCE_STEPS);
+                    this.setProgress('pending', 'Saving image', 53 / this.INFERENCE_STEPS);
                     break;
                 default:
                     break;
@@ -240,8 +241,8 @@ export class SDXLBasicWorkflow extends Workflow {
         }
         if (message.type === 'progress') {
             const { value, node } = message.data as { value: number, node: string };
-            if (node === 'KSampler') this.setProgress('Running inference', (value + 1) / this.INFERENCE_STEPS);
-            if (node === 'FaceDetailer') this.setProgress('Running face detailer', (value + 32) / this.INFERENCE_STEPS);
+            if (node === 'KSampler') this.setProgress('pending', 'Running inference', (value + 1) / this.INFERENCE_STEPS);
+            if (node === 'FaceDetailer') this.setProgress('pending', 'Running face detailer', (value + 32) / this.INFERENCE_STEPS);
         }
     }
 }

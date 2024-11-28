@@ -3,7 +3,6 @@ import { getRandomSeed } from '../utils/getRandomSeed';
 import cron from 'node-cron';
 import { db } from '../db';
 import { promptsTable, resultsTable } from '../db/schema';
-import { z } from 'zod';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
 import { eq } from 'drizzle-orm';
@@ -61,6 +60,7 @@ export function getPromptJob(jobId: string) {
 
 /** Runs every 5 seconds
  * - Inserts prompt job results into the database
+ * - Deletes failed jobs from memory
  * - Uploads completed jobs to S3 Bucket on Cloudflare R2
  * - Deletes completed jobs from memory
  */
@@ -70,27 +70,30 @@ cron.schedule('*/5 * * * * *', () => {
         const progress = value.progress;
         
         // Insert, on conflict update progress/result
-        const status = z.enum(['pending', 'completed']).parse(progress?.value === 1 ? 'completed' : 'pending');
-        const { status: statusMessage, value: progressValue, error } = progress ?? {};
+        const { status, statusMessage, value: progressValue } = progress ?? {};
         
         await db.insert(resultsTable).values({
             promptId: key,
             status,
             statusMessage,
             progress: progressValue,
-            error,
         }).onConflictDoUpdate({
             target: resultsTable.promptId,
             set: {
                 status,
                 statusMessage,
                 progress: progressValue,
-                error,
             },
         });
         
-        // Upload completed jobs to S3 Bucket
-        if (progressValue === 1) {
+        // Delete failed jobs from memory
+        if (status === 'failed') {
+            console.error(`Error while processing prompt job ${key}: ${statusMessage}`);
+            promptJobs.delete(key);
+        }
+        
+        if (status === 'completed') {
+            // Upload completed jobs to S3 Bucket
             const r2Client = getR2Client();
             const bucketName = getRequiredEnvVar('R2_BUCKET_NAME');
             const objectKey = `results/${key}.png`;
@@ -112,20 +115,14 @@ cron.schedule('*/5 * * * * *', () => {
                 console.error(`Error while uploading prompt job ${key} to S3: ${e}`);
                 // Update db with error
                 await db.update(resultsTable)
-                    .set({ error: 'Could not upload completed image' })
+                    .set({
+                        status: 'failed',
+                        statusMessage: 'Error while uploading to S3',
+                    })
                     .where(eq(resultsTable.promptId, key));
-                
-                // Delete from memory
-                promptJobs.delete(key);
             }
-        }
-        
-        // Clear completed jobs
-        if (progressValue === 1) {
-            promptJobs.delete(key);
-        }
-        if (error) {
-            console.error(`Error while processing prompt job ${key}: ${error}`);
+            
+            // Delete completed jobs from memory
             promptJobs.delete(key);
         }
     });
