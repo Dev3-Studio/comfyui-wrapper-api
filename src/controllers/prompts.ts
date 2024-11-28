@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { zPromptCreate } from '../lib/zodSchemas';
+import { zPromptCreate, zStatus } from '../lib/zodSchemas';
 import { z } from 'zod';
 import { fromError } from 'zod-validation-error';
 import * as services from '../services/prompts';
@@ -18,6 +18,30 @@ export async function postPrompt(req: Request, res: Response) {
     try {
         const result = await services.createPrompt(prompt);
         return res.status(201).json(result);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+export async function getAllPromptResults(req: Request, res: Response) {
+    const query = req.query;
+    
+    const parse = z.object({
+        clientId: z.string().uuid().optional(),
+        status: zStatus.optional(),
+        limit: z.number().int().positive().optional(),
+    }).safeParse(query);
+    if (!parse.success) {
+        const error = fromError(parse.error);
+        return res.status(400).json(error.toString());
+    }
+    
+    const filters = parse.data;
+    
+    try {
+        const result = await services.getAllPromptResults(filters);
+        return res.status(200).send(result);
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: 'Internal Server Error' });

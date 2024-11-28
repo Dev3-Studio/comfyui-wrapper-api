@@ -1,5 +1,5 @@
 import { queuePromptJob } from '../jobs/prompts';
-import { Prompt, PromptCreate, PromptResult } from '../lib/zodSchemas';
+import { Prompt, PromptCreate, PromptResult, Status } from '../lib/zodSchemas';
 import { optimisePrompt } from '../core/llm';
 import { getRandomSeed } from '../utils/getRandomSeed';
 import { Layout, Workflows } from '../core/workflows';
@@ -34,6 +34,44 @@ export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
         seed,
         workflow,
     };
+}
+
+interface GetAllPromptResultsFilters {
+    clientId?: string;
+    status?: Status;
+    limit?: number;
+}
+
+export async function getAllPromptResults(filters: GetAllPromptResultsFilters): Promise<PromptResult[]> {
+    const { clientId, status, limit } = filters;
+    let query = db
+        .select({
+            promptId: promptsTable.id,
+            clientId: promptsTable.clientId,
+            text: promptsTable.text,
+            enhancedText: promptsTable.enhancedText,
+            workflow: promptsTable.workflow,
+            layout: promptsTable.layout,
+            seed: promptsTable.seed,
+            status: resultsTable.status,
+            statusMessage: resultsTable.statusMessage,
+            progress: resultsTable.progress,
+            resultS3Key: resultsTable.s3Key,
+        })
+        .from(promptsTable)
+        .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))
+        .$dynamic();
+    
+    query = query.limit(limit || 100);
+    if (clientId) query = query.where(eq(promptsTable.clientId, clientId));
+    if (status) query = query.where(eq(resultsTable.status, status));
+    
+    const data = await query;
+    return data.map((row) => ({
+        ...row,
+        workflow: z.nativeEnum(Workflows).parse(row.workflow),
+        layout: z.nativeEnum(Layout).parse(row.layout),
+    }));
 }
 
 export async function getPromptResult(promptId: string): Promise<PromptResult> {
