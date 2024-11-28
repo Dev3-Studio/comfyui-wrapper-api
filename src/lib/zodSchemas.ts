@@ -5,7 +5,7 @@ export const zPrompt = z.object({
     clientId: z.string().uuid(),
     promptId: z.string().uuid(),
     text: z.string(),
-    enhancedText: z.string().optional(),
+    enhancedText: z.string().nullable(),
     workflow: z.nativeEnum(Workflows),
     layout: z.nativeEnum(Layout),
     seed: z.number().int(),
@@ -22,21 +22,21 @@ export const zPromptCreate = z.object({
 
 export const zStatus = z.enum(['pending', 'completed', 'failed']);
 
-export const zPromptStatus = z.object({
-    promptId: z.string().uuid(),
-    status: zStatus,
-    statusMessage: z.string(),
-    progress: z.number().int().min(0).max(1),
-});
-
 export const zPromptResult = z.object({
+    clientId: z.string().uuid(),
     promptId: z.string().uuid(),
     text: z.string(),
-    result: z.instanceof(Buffer),
+    enhancedText: z.string().nullable(),
+    workflow: z.nativeEnum(Workflows),
+    layout: z.nativeEnum(Layout),
+    seed: z.number().int(),
+    status: zStatus.nullable(),
+    statusMessage: z.string().nullable(),
+    progress: z.number().int().min(0).max(1).nullable(),
+    resultS3Key: z.string().nullable(),
 });
 
 export type Prompt = z.infer<typeof zPrompt>;
 export type PromptCreate = z.infer<typeof zPromptCreate>;
 export type Status = z.infer<typeof zStatus>;
-export type PromptStatus = z.infer<typeof zPromptStatus>;
 export type PromptResult = z.infer<typeof zPromptResult>;

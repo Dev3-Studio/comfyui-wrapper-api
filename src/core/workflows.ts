@@ -154,9 +154,9 @@ export enum Layout {
 }
 
 export enum Workflows {
-    Anime = 'anime',
     Realistic = 'realistic',
     Fantasy = 'fantasy',
+    Anime = 'anime',
 }
 
 export class SDXLBasicWorkflow extends Workflow {
