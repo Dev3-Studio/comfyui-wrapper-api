@@ -19,7 +19,7 @@ interface Message {
 }
 
 export class Workflow {
-    readonly clientId: string;
+    readonly websocketId: string;
     
     private httpUrl: URL;
     private wsUrl: URL;
@@ -29,12 +29,12 @@ export class Workflow {
     
     protected workflowJson: object; // Workflow in API format
     
-    constructor(clientId: string, workflowJson: object) {
-        this.clientId = clientId;
+    constructor(workflowJson: object) {
+        this.websocketId = crypto.randomUUID();
         this.workflowJson = workflowJson;
         
         this.httpUrl = new URL(`http://${comfyUiHost}:${comfyUiPort}`);
-        this.wsUrl = new URL(`ws://${comfyUiHost}:${comfyUiPort}/ws?clientId=${this.clientId}`);
+        this.wsUrl = new URL(`ws://${comfyUiHost}:${comfyUiPort}/ws?clientId=${this.websocketId}`);
         
         this.ws = new WebSocket(this.wsUrl.toString());
     }
@@ -88,7 +88,7 @@ export class Workflow {
             },
             body: JSON.stringify({
                 prompt: this.workflowJson,
-                client_id: this.clientId,
+                client_id: this.websocketId,
             }),
         });
         
@@ -162,7 +162,6 @@ export class SDXLBasicWorkflow extends Workflow {
     private readonly INFERENCE_STEPS = 54;
     
     constructor(
-        clientId: string,
         positivePrompt: string,
         negativePrompt: string,
         checkpoint: Checkpoint,
@@ -206,12 +205,13 @@ export class SDXLBasicWorkflow extends Workflow {
             ...DIMENSIONS[layout ?? Layout.Square],
         };
         
-        super(clientId, sdxlWorkflow);
+        super(sdxlWorkflow);
     }
     
     protected override handleMessage(message: Message) {
         const data = message.data as { prompt_id: string };
         if (data.prompt_id !== this.promptId) return;
+        console.log(message);
         switch (message.type) {
             case 'execution_start':
                 this.setProgress('Starting', 0 / this.INFERENCE_STEPS);
@@ -247,7 +247,7 @@ export class SDXLBasicWorkflow extends Workflow {
 }
 
 export class AnimeWorkflow extends SDXLBasicWorkflow {
-    constructor(clientId: string, prompt: string, options?: {
+    constructor(prompt: string, options?: {
         seed?: number;
         layout?: Layout,
     }) {
@@ -256,7 +256,6 @@ export class AnimeWorkflow extends SDXLBasicWorkflow {
         const positivePrompt = positivePromptKeywords.join(', ') + ', ' + prompt;
         const negativePrompt = negativePromptKeywords.join(', ');
         super(
-            clientId,
             positivePrompt,
             negativePrompt,
             Checkpoint.PonyXL,
@@ -271,7 +270,7 @@ export class AnimeWorkflow extends SDXLBasicWorkflow {
 }
 
 export class RealisticWorkflow extends SDXLBasicWorkflow {
-    constructor(clientId: string, prompt: string, options?: {
+    constructor(prompt: string, options?: {
         seed?: number;
         layout?: Layout,
     }) {
@@ -280,7 +279,6 @@ export class RealisticWorkflow extends SDXLBasicWorkflow {
         const positivePrompt = positivePromptKeywords.join(', ') + ', ' + prompt;
         const negativePrompt = negativePromptKeywords.join(', ');
         super(
-            clientId,
             positivePrompt,
             negativePrompt,
             Checkpoint.JuggernautXL,
@@ -295,12 +293,11 @@ export class RealisticWorkflow extends SDXLBasicWorkflow {
 }
 
 export class FantasyWorkflow extends SDXLBasicWorkflow {
-    constructor(clientId: string, prompt: string, options?: {
+    constructor(prompt: string, options?: {
         seed?: number;
         layout?: Layout,
     }) {
         super(
-            clientId,
             prompt,
             '',
             Checkpoint.DreamshaperXL,

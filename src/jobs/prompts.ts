@@ -27,16 +27,16 @@ export async function queuePromptJob(options: QueuePromptJobOptions) {
     let workflow: Workflow;
     switch (options.workflow) {
         case 'realistic':
-            workflow = new RealisticWorkflow(clientId, promptText, { layout, seed });
+            workflow = new RealisticWorkflow(promptText, { layout, seed });
             break;
         case 'fantasy':
-            workflow = new FantasyWorkflow(clientId, promptText, { layout, seed });
+            workflow = new FantasyWorkflow(promptText, { layout, seed });
             break;
         case 'anime':
-            workflow = new AnimeWorkflow(clientId, promptText, { layout, seed });
+            workflow = new AnimeWorkflow(promptText, { layout, seed });
             break;
         default:
-            workflow = new RealisticWorkflow(clientId, promptText, { layout, seed });
+            workflow = new RealisticWorkflow(promptText, { layout, seed });
             break;
     }
     void await workflow.startExecution();
