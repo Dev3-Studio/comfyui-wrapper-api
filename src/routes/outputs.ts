@@ -3,6 +3,6 @@ import { getOutput } from '../controllers/outputs';
 
 const router = express.Router();
 
-router.post('/:id', getOutput);
+router.post('/:filename', getOutput);
 
 export default router;

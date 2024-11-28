@@ -56,7 +56,7 @@ export async function getAllPromptResults(filters: GetAllPromptResultsFilters): 
             status: resultsTable.status,
             statusMessage: resultsTable.statusMessage,
             progress: resultsTable.progress,
-            resultS3Key: resultsTable.s3Key,
+            outputFilename: resultsTable.s3Key,
         })
         .from(promptsTable)
         .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))
@@ -86,7 +86,7 @@ export async function getPromptResult(promptId: string): Promise<PromptResult> {
             status: resultsTable.status,
             statusMessage: resultsTable.statusMessage,
             progress: resultsTable.progress,
-            resultS3Key: resultsTable.s3Key,
+            outputFilename: resultsTable.s3Key,
         })
         .from(promptsTable)
         .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))

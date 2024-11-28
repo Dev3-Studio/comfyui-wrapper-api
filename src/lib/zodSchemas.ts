@@ -33,7 +33,7 @@ export const zPromptResult = z.object({
     status: zStatus.nullable(),
     statusMessage: z.string().nullable(),
     progress: z.number().int().min(0).max(1).nullable(),
-    resultS3Key: z.string().nullable(),
+    outputFilename: z.string().nullable(),
 });
 
 export type Prompt = z.infer<typeof zPrompt>;

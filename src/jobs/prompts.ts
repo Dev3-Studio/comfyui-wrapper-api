@@ -96,7 +96,7 @@ cron.schedule('*/5 * * * * *', () => {
             // Upload completed jobs to S3 Bucket
             const r2Client = getR2Client();
             const bucketName = getRequiredEnvVar('R2_BUCKET_NAME');
-            const objectKey = `results/${key}.png`;
+            const objectKey = `${key}.png`;
             const uploadParams = {
                 Bucket: bucketName,
                 Key: objectKey,
