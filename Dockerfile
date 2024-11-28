@@ -4,17 +4,21 @@ FROM node:lts-alpine
 WORKDIR /api
 
 # Copy the wrapper api code into the container
-COPY src .
+COPY src src
 COPY package.json .
+COPY package-lock.json .
 COPY tsconfig.json .
+COPY drizzle.config.ts .
 
 # Install Node.js dependencies
+RUN npm config set strict-ssl false
 RUN npm install
 
 # Run build
 RUN npm run build
 
 # Setup sqlite database
+ENV DB_FILE_NAME=file:local.db
 RUN npx drizzle-kit push
 
 # Set the port
