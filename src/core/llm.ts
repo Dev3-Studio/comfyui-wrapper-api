@@ -111,6 +111,16 @@ async function inferSettingsFromPromptText(text: string): Promise<{ workflow: Wo
 export async function optimisePrompt(prompt: PromptCreate): Promise<OptimisedPrompt> {
     const enhancedText = prompt.enhanceText ? await enhancePromptText(prompt.text).catch(() => prompt.text) : undefined;
     
+    if (prompt.workflowOverride && prompt.layoutOverride) {
+        return {
+            text: prompt.text,
+            enhancedText,
+            workflow: prompt.workflowOverride,
+            layout: prompt.layoutOverride,
+            seed: prompt.seedOverride,
+        };
+    }
+    
     const settings = await inferSettingsFromPromptText(enhancedText || prompt.text).catch(() => undefined);
     
     return {
