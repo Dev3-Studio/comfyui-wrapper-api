@@ -9,6 +9,7 @@ export const zPrompt = z.object({
     workflow: z.nativeEnum(Workflows),
     layout: z.nativeEnum(Layout),
     seed: z.number().int(),
+    createdAt: z.string().datetime(),
 });
 
 export const zPromptCreate = z.object({
@@ -34,6 +35,7 @@ export const zPromptResult = z.object({
     statusMessage: z.string().nullable(),
     progress: z.number().int().min(0).max(1).nullable(),
     outputFilename: z.string().nullable(),
+    createdAt: z.string().datetime(),
 });
 
 export type Prompt = z.infer<typeof zPrompt>;

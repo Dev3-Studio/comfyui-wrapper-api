@@ -25,6 +25,7 @@ export class Workflow {
     private httpUrl: URL;
     private wsUrl: URL;
     private ws: WebSocket;
+    private _startedAt?: Date;
     private _promptId?: string;
     private _progress?: Progress;
     
@@ -38,6 +39,14 @@ export class Workflow {
         this.wsUrl = new URL(`ws://${comfyUiHost}:${comfyUiPort}/ws?clientId=${this.websocketId}`);
         
         this.ws = new WebSocket(this.wsUrl.toString());
+    }
+    
+    get startedAt(): Date | undefined {
+        return this._startedAt;
+    }
+    
+    protected set startedAt(value: Date | undefined) {
+        this._startedAt = value;
     }
     
     get promptId(): string | undefined {
@@ -94,6 +103,7 @@ export class Workflow {
         });
         
         const data = await res.json() as { prompt_id: string };
+        this.startedAt = new Date();
         this.setProgress('pending', 'Starting', 0);
         this.promptId = data.prompt_id;
     }

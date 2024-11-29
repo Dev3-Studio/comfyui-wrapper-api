@@ -41,6 +41,7 @@ export async function queuePromptJob(options: QueuePromptJobOptions) {
     void await workflow.startExecution();
     const promptId = workflow.promptId;
     if (!promptId) throw new Error('Error while queueing prompt job - promptId is undefined');
+    if (!workflow.startedAt) throw new Error('Error while queueing prompt job - startedAt is undefined');
     await db.insert(promptsTable).values({
         id: promptId,
         clientId,
@@ -49,6 +50,7 @@ export async function queuePromptJob(options: QueuePromptJobOptions) {
         layout,
         workflow: options.workflow,
         seed: seed.toString(),
+        createdAt: workflow.startedAt.toISOString(),
     });
     promptJobs.set(promptId, workflow);
     return workflow;

@@ -33,6 +33,7 @@ export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
         enhancedText: enhancedText ?? null,
         seed,
         workflow,
+        createdAt: job.startedAt?.toISOString() ?? new Date().toISOString(),
     };
 }
 
@@ -57,6 +58,7 @@ export async function getAllPromptResults(filters: GetAllPromptResultsFilters): 
             statusMessage: resultsTable.statusMessage,
             progress: resultsTable.progress,
             outputFilename: resultsTable.s3Key,
+            createdAt: promptsTable.createdAt,
         })
         .from(promptsTable)
         .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))
@@ -88,6 +90,7 @@ export async function getPromptResult(promptId: string): Promise<PromptResult> {
             statusMessage: resultsTable.statusMessage,
             progress: resultsTable.progress,
             outputFilename: resultsTable.s3Key,
+            createdAt: promptsTable.createdAt,
         })
         .from(promptsTable)
         .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))
