@@ -70,7 +70,11 @@ cron.schedule('*/5 * * * * *', () => {
         const progress = value.progress;
         
         // Insert, on conflict update progress/result
-        const { status, statusMessage, value: progressValue } = progress ?? {};
+        const { status, statusMessage, value: progressValue } = progress ?? {
+            status: 'pending',
+            statusMessage: 'In queue',
+            value: 0,
+        };
         
         await db.insert(resultsTable).values({
             promptId: key,
