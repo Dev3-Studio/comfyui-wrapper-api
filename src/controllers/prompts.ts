@@ -30,7 +30,7 @@ export async function getAllPromptResults(req: Request, res: Response) {
     const parse = z.object({
         clientId: z.string().uuid().optional(),
         status: zStatus.optional(),
-        limit: z.number().int().positive().optional(),
+        limit: z.coerce.number().int().positive().optional(),
     }).safeParse(query);
     if (!parse.success) {
         const error = fromError(parse.error);
