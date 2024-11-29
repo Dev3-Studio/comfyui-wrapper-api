@@ -3,14 +3,19 @@ import WebSocket from 'ws';
 import { getRequiredEnvVar } from '../utils/getRequiredEnvVar';
 import { z } from 'zod';
 import { getRandomSeed } from '../utils/getRandomSeed';
-import { Status } from '../lib/zodSchemas';
 
 const comfyUiHost = getRequiredEnvVar('COMFY_UI_HOST');
 const comfyUiPort = getRequiredEnvVar('COMFY_UI_PORT');
 
+export enum PromptStatus {
+    Pending = 'pending',
+    Completed = 'completed',
+    Failed = 'failed',
+}
+
 interface Progress {
     value: number; // 0-1
-    status: Status;
+    status: PromptStatus;
     statusMessage?: string;
 }
 
@@ -25,6 +30,7 @@ export class Workflow {
     private httpUrl: URL;
     private wsUrl: URL;
     private ws: WebSocket;
+    private _startedAt?: Date;
     private _promptId?: string;
     private _progress?: Progress;
     
@@ -38,6 +44,14 @@ export class Workflow {
         this.wsUrl = new URL(`ws://${comfyUiHost}:${comfyUiPort}/ws?clientId=${this.websocketId}`);
         
         this.ws = new WebSocket(this.wsUrl.toString());
+    }
+    
+    get startedAt(): Date | undefined {
+        return this._startedAt;
+    }
+    
+    protected set startedAt(value: Date | undefined) {
+        this._startedAt = value;
     }
     
     get promptId(): string | undefined {
@@ -79,7 +93,7 @@ export class Workflow {
         
         this.ws.on('error', () => {
             this.ws.close();
-            this.setProgress('failed', 'ComfyUI websocket closed unexpectedly', 0);
+            this.setProgress(PromptStatus.Failed, 'ComfyUI websocket closed unexpectedly', 0);
         });
         
         const res = await fetch(this.httpUrl.toString() + 'prompt', {
@@ -94,10 +108,12 @@ export class Workflow {
         });
         
         const data = await res.json() as { prompt_id: string };
+        this.startedAt = new Date();
+        this.setProgress(PromptStatus.Pending, 'Starting', 0);
         this.promptId = data.prompt_id;
     }
     
-    protected setProgress(status: Status, statusMessage: string, value: number) {
+    protected setProgress(status: PromptStatus, statusMessage: string, value: number) {
         if (value < 0 || value > 1) {
             throw new Error('Progress value must be between 0 and 1');
         }
@@ -110,10 +126,10 @@ export class Workflow {
         if (data.prompt_id !== this.promptId) return;
         switch (message.type) {
             case 'execution_start':
-                this.setProgress('pending', 'Starting', 0);
+                this.setProgress(PromptStatus.Pending, 'Starting', 0);
                 break;
             case 'execution_success':
-                this.setProgress('completed', 'Completed', 1);
+                this.setProgress(PromptStatus.Completed, 'Completed', 1);
                 break;
         }
     }
@@ -212,13 +228,12 @@ export class SDXLBasicWorkflow extends Workflow {
     protected override handleMessage(message: Message) {
         const data = message.data as { prompt_id: string };
         if (data.prompt_id !== this.promptId) return;
-        console.log(message);
         switch (message.type) {
             case 'execution_start':
-                this.setProgress('pending', 'Starting', 0 / this.INFERENCE_STEPS);
+                this.setProgress(PromptStatus.Pending, 'Starting', 0 / this.INFERENCE_STEPS);
                 break;
             case 'execution_success':
-                this.setProgress('completed', 'Completed', 1);
+                this.setProgress(PromptStatus.Completed, 'Completed', 1);
                 break;
             default:
                 break;
@@ -227,13 +242,13 @@ export class SDXLBasicWorkflow extends Workflow {
             const { node } = message.data as { node: string };
             switch (node) {
                 case 'CheckpointLoaderSimple':
-                    this.setProgress('pending', 'Loading checkpoint', 1 / this.INFERENCE_STEPS);
+                    this.setProgress(PromptStatus.Pending, 'Loading checkpoint', 1 / this.INFERENCE_STEPS);
                     break;
                 case 'VAEDecode':
-                    this.setProgress('pending', 'VAE decoding', 32 / this.INFERENCE_STEPS);
+                    this.setProgress(PromptStatus.Pending, 'VAE decoding', 32 / this.INFERENCE_STEPS);
                     break;
                 case 'SaveImage':
-                    this.setProgress('pending', 'Saving image', 53 / this.INFERENCE_STEPS);
+                    this.setProgress(PromptStatus.Pending, 'Saving image', 53 / this.INFERENCE_STEPS);
                     break;
                 default:
                     break;
@@ -241,8 +256,8 @@ export class SDXLBasicWorkflow extends Workflow {
         }
         if (message.type === 'progress') {
             const { value, node } = message.data as { value: number, node: string };
-            if (node === 'KSampler') this.setProgress('pending', 'Running inference', (value + 1) / this.INFERENCE_STEPS);
-            if (node === 'FaceDetailer') this.setProgress('pending', 'Running face detailer', (value + 32) / this.INFERENCE_STEPS);
+            if (node === 'KSampler') this.setProgress(PromptStatus.Pending, 'Running inference', (value + 1) / this.INFERENCE_STEPS);
+            if (node === 'FaceDetailer') this.setProgress(PromptStatus.Pending, 'Running face detailer', (value + 32) / this.INFERENCE_STEPS);
         }
     }
 }

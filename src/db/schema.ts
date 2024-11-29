@@ -7,7 +7,8 @@ export const promptsTable = sqliteTable('prompts', {
     enhancedText: text(),
     workflow: text({ enum: ['realistic', 'fantasy', 'anime'] }).notNull(),
     layout: text({ enum: ['square', 'portrait', 'landscape'] }).notNull(),
-    seed: int().notNull(),
+    seed: text().notNull(),
+    createdAt: int().notNull(),
 });
 
 export const resultsTable = sqliteTable('results', {

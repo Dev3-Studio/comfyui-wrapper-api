@@ -1,11 +1,11 @@
 import { queuePromptJob } from '../jobs/prompts';
-import { Prompt, PromptCreate, PromptResult, Status } from '../lib/zodSchemas';
+import { Prompt, PromptCreate, PromptResult } from '../lib/zodSchemas';
 import { optimisePrompt } from '../core/llm';
 import { getRandomSeed } from '../utils/getRandomSeed';
-import { Layout, Workflows } from '../core/workflows';
+import { Layout, PromptStatus, Workflows } from '../core/workflows';
 import { db } from '../db';
 import { promptsTable, resultsTable } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
@@ -33,12 +33,13 @@ export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
         enhancedText: enhancedText ?? null,
         seed,
         workflow,
+        createdAt: job.startedAt?.toISOString() ?? new Date().toISOString(),
     };
 }
 
 interface GetAllPromptResultsFilters {
     clientId?: string;
-    status?: Status;
+    status?: PromptStatus;
     limit?: number;
 }
 
@@ -57,8 +58,10 @@ export async function getAllPromptResults(filters: GetAllPromptResultsFilters): 
             statusMessage: resultsTable.statusMessage,
             progress: resultsTable.progress,
             outputFilename: resultsTable.s3Key,
+            createdAt: promptsTable.createdAt,
         })
         .from(promptsTable)
+        .orderBy(desc(promptsTable.createdAt))
         .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))
         .$dynamic();
     
@@ -69,8 +72,11 @@ export async function getAllPromptResults(filters: GetAllPromptResultsFilters): 
     const data = await query;
     return data.map((row) => ({
         ...row,
+        status: z.nativeEnum(PromptStatus).parse(row.status),
         workflow: z.nativeEnum(Workflows).parse(row.workflow),
         layout: z.nativeEnum(Layout).parse(row.layout),
+        seed: parseInt(row.seed),
+        createdAt: new Date(row.createdAt * 1000).toISOString(),
     }));
 }
 
@@ -87,8 +93,10 @@ export async function getPromptResult(promptId: string): Promise<PromptResult> {
             statusMessage: resultsTable.statusMessage,
             progress: resultsTable.progress,
             outputFilename: resultsTable.s3Key,
+            createdAt: promptsTable.createdAt,
         })
         .from(promptsTable)
+        .orderBy(desc(promptsTable.createdAt))
         .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))
         .limit(1)
         .where(eq(promptsTable.id, promptId));
@@ -98,7 +106,10 @@ export async function getPromptResult(promptId: string): Promise<PromptResult> {
     return {
         promptId,
         ...data[0],
+        status: z.nativeEnum(PromptStatus).parse(data[0].status),
         workflow: z.nativeEnum(Workflows).parse(data[0].workflow),
         layout: z.nativeEnum(Layout).parse(data[0].layout),
+        seed: parseInt(data[0].seed),
+        createdAt: new Date(data[0].createdAt * 1000).toISOString(),
     };
 }
