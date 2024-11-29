@@ -48,7 +48,7 @@ export async function queuePromptJob(options: QueuePromptJobOptions) {
         enhancedText,
         layout,
         workflow: options.workflow,
-        seed,
+        seed: seed.toString(),
     });
     promptJobs.set(promptId, workflow);
     return workflow;

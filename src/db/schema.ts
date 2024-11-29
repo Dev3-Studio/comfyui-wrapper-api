@@ -1,4 +1,4 @@
-import { int, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const promptsTable = sqliteTable('prompts', {
     id: text().primaryKey().notNull(),
@@ -7,7 +7,7 @@ export const promptsTable = sqliteTable('prompts', {
     enhancedText: text(),
     workflow: text({ enum: ['realistic', 'fantasy', 'anime'] }).notNull(),
     layout: text({ enum: ['square', 'portrait', 'landscape'] }).notNull(),
-    seed: int().notNull(),
+    seed: text().notNull(),
 });
 
 export const resultsTable = sqliteTable('results', {

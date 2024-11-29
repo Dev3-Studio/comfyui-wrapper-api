@@ -71,6 +71,7 @@ export async function getAllPromptResults(filters: GetAllPromptResultsFilters): 
         ...row,
         workflow: z.nativeEnum(Workflows).parse(row.workflow),
         layout: z.nativeEnum(Layout).parse(row.layout),
+        seed: parseInt(row.seed),
     }));
 }
 
@@ -100,5 +101,6 @@ export async function getPromptResult(promptId: string): Promise<PromptResult> {
         ...data[0],
         workflow: z.nativeEnum(Workflows).parse(data[0].workflow),
         layout: z.nativeEnum(Layout).parse(data[0].layout),
+        seed: parseInt(data[0].seed),
     };
 }
