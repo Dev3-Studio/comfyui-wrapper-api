@@ -94,6 +94,7 @@ export class Workflow {
         });
         
         const data = await res.json() as { prompt_id: string };
+        this.setProgress('pending', 'Starting', 0);
         this.promptId = data.prompt_id;
     }
     
@@ -212,7 +213,6 @@ export class SDXLBasicWorkflow extends Workflow {
     protected override handleMessage(message: Message) {
         const data = message.data as { prompt_id: string };
         if (data.prompt_id !== this.promptId) return;
-        console.log(message);
         switch (message.type) {
             case 'execution_start':
                 this.setProgress('pending', 'Starting', 0 / this.INFERENCE_STEPS);
