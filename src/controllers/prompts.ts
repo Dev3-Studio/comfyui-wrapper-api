@@ -10,7 +10,7 @@ export async function postPrompt(req: Request, res: Response) {
     const parse = zPromptCreate.safeParse(body);
     if (!parse.success) {
         const error = fromError(parse.error);
-        return res.status(400).json(error.toString());
+        return res.status(400).json({ error: error.toString() });
     }
     
     const prompt = parse.data;
@@ -34,7 +34,7 @@ export async function getAllPromptResults(req: Request, res: Response) {
     }).safeParse(query);
     if (!parse.success) {
         const error = fromError(parse.error);
-        return res.status(400).json(error.toString());
+        return res.status(400).json({ error: error.toString() });
     }
     
     const filters = parse.data;
@@ -54,7 +54,7 @@ export async function getPromptResult(req: Request, res: Response) {
     const parse = z.string().uuid().safeParse(id);
     if (!parse.success) {
         const error = fromError(parse.error);
-        return res.status(400).json(error.toString());
+        return res.status(400).json({ error: error.toString() });
     }
     
     const promptId = parse.data;

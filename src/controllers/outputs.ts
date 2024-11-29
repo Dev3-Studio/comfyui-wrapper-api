@@ -11,7 +11,7 @@ export async function getOutput(req: Request, res: Response) {
     const parse = z.string().uuid().safeParse(id);
     if (!parse.success) {
         const error = fromError(parse.error);
-        return res.status(400).json(error.toString());
+        return res.status(400).json({ error: error.toString() });
     }
     if (extension !== 'png') {
         return res.status(400).json({ error: 'Unsupported file extension' });
@@ -21,7 +21,7 @@ export async function getOutput(req: Request, res: Response) {
     
     try {
         const result = await services.getOutput(outputId);
-        return res.status(200).send(result);
+        return res.type('png').send(result);
     } catch (err: unknown) {
         if (err instanceof Error && err.message === 'NOT_FOUND') {
             return res.status(404).json({ error: 'Not Found' });
