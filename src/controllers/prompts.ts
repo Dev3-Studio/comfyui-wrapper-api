@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { zPromptCreate, zStatus } from '../lib/zodSchemas';
+import { zPromptCreate } from '../lib/zodSchemas';
 import { z } from 'zod';
 import { fromError } from 'zod-validation-error';
 import * as services from '../services/prompts';
+import { PromptStatus } from '../core/workflows';
 
 export async function postPrompt(req: Request, res: Response) {
     const { body } = req;
@@ -29,7 +30,7 @@ export async function getAllPromptResults(req: Request, res: Response) {
     
     const parse = z.object({
         clientId: z.string().uuid().optional(),
-        status: zStatus.optional(),
+        status: z.nativeEnum(PromptStatus).optional(),
         limit: z.coerce.number().int().positive().optional(),
     }).safeParse(query);
     if (!parse.success) {
