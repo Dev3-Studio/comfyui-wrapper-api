@@ -50,7 +50,7 @@ export async function queuePromptJob(options: QueuePromptJobOptions) {
         layout,
         workflow: options.workflow,
         seed: seed.toString(),
-        createdAt: workflow.startedAt.toISOString(),
+        createdAt: workflow.startedAt.getTime() / 1000,
     });
     promptJobs.set(promptId, workflow);
     return workflow;

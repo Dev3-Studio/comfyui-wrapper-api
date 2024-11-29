@@ -5,7 +5,7 @@ import { getRandomSeed } from '../utils/getRandomSeed';
 import { Layout, Workflows } from '../core/workflows';
 import { db } from '../db';
 import { promptsTable, resultsTable } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
@@ -61,6 +61,7 @@ export async function getAllPromptResults(filters: GetAllPromptResultsFilters): 
             createdAt: promptsTable.createdAt,
         })
         .from(promptsTable)
+        .orderBy(desc(promptsTable.createdAt))
         .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))
         .$dynamic();
     
@@ -74,6 +75,7 @@ export async function getAllPromptResults(filters: GetAllPromptResultsFilters): 
         workflow: z.nativeEnum(Workflows).parse(row.workflow),
         layout: z.nativeEnum(Layout).parse(row.layout),
         seed: parseInt(row.seed),
+        createdAt: new Date(row.createdAt * 1000).toISOString(),
     }));
 }
 
@@ -93,6 +95,7 @@ export async function getPromptResult(promptId: string): Promise<PromptResult> {
             createdAt: promptsTable.createdAt,
         })
         .from(promptsTable)
+        .orderBy(desc(promptsTable.createdAt))
         .leftJoin(resultsTable, eq(promptsTable.id, resultsTable.promptId))
         .limit(1)
         .where(eq(promptsTable.id, promptId));
@@ -105,5 +108,6 @@ export async function getPromptResult(promptId: string): Promise<PromptResult> {
         workflow: z.nativeEnum(Workflows).parse(data[0].workflow),
         layout: z.nativeEnum(Layout).parse(data[0].layout),
         seed: parseInt(data[0].seed),
+        createdAt: new Date(data[0].createdAt * 1000).toISOString(),
     };
 }
