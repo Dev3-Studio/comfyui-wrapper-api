@@ -19,7 +19,6 @@ RUN npm run build
 
 # Setup sqlite database
 ENV DB_FILE_NAME=file:local.db
-RUN npx drizzle-kit push
 
 # Set the port
 EXPOSE $PORT

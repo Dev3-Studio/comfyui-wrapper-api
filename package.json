@@ -6,7 +6,7 @@
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
     "build": "rimraf build && tsc && copyfiles -u 1 src/static/**/* build",
-    "start": "node build/index.js",
+    "start": "npx drizzle-kit push && node build/index.js",
     "dev": "npm run build && npm run start"
   },
   "keywords": [],
@@ -35,6 +35,7 @@
     "@langchain/core": "^0.3.18",
     "@langchain/openai": "^0.3.14",
     "@libsql/client": "^0.14.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.28.1",
     "drizzle-orm": "^0.36.4",
