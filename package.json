@@ -12,7 +12,7 @@
   "keywords": [],
   "author": "Dev3 Studio",
   "type": "commonjs",
-  "license": "ISC",
+  "license": "GPL-3.0-only",
   "description": "",
   "devDependencies": {
     "@eslint/js": "^9.14.0",
