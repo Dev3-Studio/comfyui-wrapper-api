@@ -19,8 +19,8 @@ export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
     try {
         const optimisedPrompt = await optimisePrompt(prompt);
         enhancedText = optimisedPrompt.enhancedText;
-        if (optimisedPrompt.workflow) workflow = optimisedPrompt.workflow;
-        if (optimisedPrompt.layout) layout = optimisedPrompt.layout;
+        if (!workflowOverride && optimisedPrompt.workflow) workflow = optimisedPrompt.workflow;
+        if (!layoutOverride && optimisedPrompt.layout) layout = optimisedPrompt.layout;
     } catch (error) {
         console.error(error);
     }
