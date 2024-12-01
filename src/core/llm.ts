@@ -17,7 +17,6 @@ interface OptimisedPrompt {
     enhancedText?: string;
     workflow?: Workflows;
     layout?: Layout;
-    seed?: number;
 }
 
 type ToolCallExample = {
@@ -109,7 +108,7 @@ async function inferSettingsFromPromptText(text: string): Promise<{ workflow: Wo
 }
 
 export async function optimisePrompt(prompt: PromptCreate): Promise<OptimisedPrompt> {
-    const enhancedText = prompt.enhanceText ? await enhancePromptText(prompt.text).catch(() => prompt.text) : undefined;
+    const enhancedText = prompt.enhanceText ? await enhancePromptText(prompt.text) : undefined;
     
     if (prompt.workflowOverride && prompt.layoutOverride) {
         return {
@@ -117,17 +116,15 @@ export async function optimisePrompt(prompt: PromptCreate): Promise<OptimisedPro
             enhancedText,
             workflow: prompt.workflowOverride,
             layout: prompt.layoutOverride,
-            seed: prompt.seedOverride,
         };
     }
     
-    const settings = await inferSettingsFromPromptText(enhancedText || prompt.text).catch(() => undefined);
+    const settings = await inferSettingsFromPromptText(enhancedText || prompt.text);
     
     return {
         text: prompt.text,
         enhancedText,
-        workflow: settings?.workflow,
-        layout: settings?.layout,
-        seed: prompt.seedOverride,
+        workflow: settings.workflow,
+        layout: settings.layout,
     };
 }

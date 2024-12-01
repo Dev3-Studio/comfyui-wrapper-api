@@ -10,11 +10,20 @@ import { z } from 'zod';
 
 export async function createPrompt(prompt: PromptCreate): Promise<Prompt> {
     const { text, clientId, workflowOverride, layoutOverride, seedOverride } = prompt;
-    const { workflow: optimisedWorkflow, enhancedText, layout: optimisedLayout } = await optimisePrompt(prompt);
     
-    const workflow = workflowOverride || optimisedWorkflow || Workflows.Realistic;
-    const layout = layoutOverride || optimisedLayout || Layout.Square;
-    const seed = seedOverride || getRandomSeed();
+    let workflow = workflowOverride || Workflows.Realistic;
+    let layout = layoutOverride || Layout.Square;
+    let seed = seedOverride || getRandomSeed();
+    let enhancedText: string | undefined;
+    
+    try {
+        const optimisedPrompt = await optimisePrompt(prompt);
+        enhancedText = optimisedPrompt.enhancedText;
+        if (optimisedPrompt.workflow) workflow = optimisedPrompt.workflow;
+        if (optimisedPrompt.layout) layout = optimisedPrompt.layout;
+    } catch (error) {
+        console.error(error);
+    }
     
     const job = await queuePromptJob({
         clientId,
@@ -70,6 +79,7 @@ export async function getAllPromptResults(filters: GetAllPromptResultsFilters): 
     if (status) query = query.where(eq(resultsTable.status, status));
     
     const data = await query;
+    
     return data.map((row) => ({
         ...row,
         status: z.nativeEnum(PromptStatus).parse(row.status),

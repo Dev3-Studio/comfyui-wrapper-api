@@ -52,6 +52,12 @@ export async function queuePromptJob(options: QueuePromptJobOptions) {
         seed: seed.toString(),
         createdAt: workflow.startedAt.getTime() / 1000,
     });
+    await db.insert(resultsTable).values({
+        promptId,
+        status: 'pending',
+        statusMessage: 'In queue',
+        progress: 0,
+    });
     promptJobs.set(promptId, workflow);
     return workflow;
 }
